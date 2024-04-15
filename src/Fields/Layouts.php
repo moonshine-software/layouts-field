@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MoonShine\Layouts\Fields;
 
 use Closure;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\View;
 use MoonShine\ActionButtons\ActionButton;
 use MoonShine\Components\Dropdown;
@@ -102,6 +103,7 @@ final class Layouts extends Field
                 []
             );
         }
+
 
         $filled = $values->map(function (LayoutItem $data) use ($layouts) {
             /** @var Layout $layout */
@@ -220,15 +222,43 @@ final class Layouts extends Field
 
     protected function resolveOnApply(): ?Closure
     {
-        return function ($item, $values) {
-            $data = collect($values)->map(function ($value, $index) {
-                $layout = $value['_layout'];
+        return function ($item) {
+            $requestValues = array_filter($this->requestValue() ?: []);
+
+            $data = collect($requestValues)->map(function ($value, $index) {
+                $layout = $this->getLayouts()->findByName($value['_layout']);
                 unset($value['_layout']);
+
+                if(is_null($layout)) {
+                    return [];
+                }
+
+                $applyValues = [];
+
+                $layout->fields()->onlyFields()->each(
+                   function (Field $field) use ($value, $index, &$applyValues): void {
+                        $field->appendRequestKeyPrefix(
+                            "{$this->column()}.$index",
+                            $this->requestKeyPrefix()
+                        );
+
+                       $apply = $field->apply(
+                           fn ($data): mixed => data_set($data, $field->column(), $value[$field->column()] ?? ''),
+                           $value
+                       );
+
+                       data_set(
+                           $applyValues,
+                           $field->column(),
+                           data_get($apply, $field->column())
+                       );
+                    }
+                );
 
                 return [
                     'key' => $index,
-                    'name' => $layout,
-                    'values' => $value,
+                    'name' => $layout->name(),
+                    'values' => $applyValues,
                 ];
             })->filter();
 
@@ -236,5 +266,72 @@ final class Layouts extends Field
 
             return $item;
         };
+    }
+
+    /**
+     * @throws Throwable
+     */
+    protected function resolveBeforeApply(mixed $data): mixed
+    {
+        $this->resolveCallback($data, function (Field $field, mixed $value) {
+            $field->beforeApply($value);
+        });
+
+        return $data;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    protected function resolveAfterApply(mixed $data): mixed
+    {
+        $this->resolveCallback($data, function (Field $field, mixed $value) {
+            $field->afterApply($value);
+        });
+
+        return $data;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    protected function resolveAfterDestroy(mixed $data): mixed
+    {
+        $this->resolveCallback($data, function (Field $field, mixed $value) {
+            $field->afterDestroy($value);
+        }, fill: true);
+
+        return $data;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    protected function resolveCallback(mixed $data, Closure $callback, bool $fill = false): mixed
+    {
+        $requestValues = array_filter($this->requestValue() ?: []);
+
+        foreach ($requestValues as $value) {
+            $layout = $this->getLayouts()->findByName($value['_layout']);
+
+            if(is_null($layout)) {
+                continue;
+            }
+
+            $layout->fields()
+                ->onlyFields()
+                ->each(function (Field $field, $index) use ($data, $callback, $fill): void {
+                    $field->appendRequestKeyPrefix(
+                        "{$this->column()}.$index",
+                        $this->requestKeyPrefix()
+                    );
+
+                    $field->when($fill, fn(Field $f) => $f->resolveFill($data));
+
+                    $callback($field, $data);
+                });
+        }
+
+        return $data;
     }
 }

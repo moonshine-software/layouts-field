@@ -17,6 +17,10 @@ class LayoutsCast implements CastsAttributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): mixed
     {
+        if($value instanceof LayoutItemCollection) {
+            return $value;
+        }
+
         return $this->_map($value);
     }
 

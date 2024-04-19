@@ -125,6 +125,7 @@ final class Layouts extends Field
                 ->setFields($fields)
                 ->fields()
                 ->prepend(Hidden::make('_layout')->setValue($data->getName()))
+                ->prepareAttributes()
                 ->prepareReindex($this);
 
             return $layout->removeButton($this->getRemoveButton());

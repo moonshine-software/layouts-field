@@ -6,6 +6,7 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
 use JsonException;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
+use Throwable;
 
 class LayoutsCast implements CastsAttributes
 {
@@ -39,22 +40,23 @@ class LayoutsCast implements CastsAttributes
         return $value;
     }
 
-    /**
-     * @throws JsonException
-     */
     private function _map(mixed $value): LayoutItemCollection
     {
-        if(str($value)->isJson()) {
-            $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        }
+        $values = [];
 
-        $values = collect($value)->map(function (array $data) {
-            return new LayoutItem(
-                $data['name'],
-                $data['key'] ?? 0,
-                $data['values'] ?? [],
-            );
-        })->filter();
+        try {
+            if(is_string($value) && str($value)->isJson()) {
+                $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+            }
+
+            $values = collect($value)->map(function (array $data) {
+                return new LayoutItem(
+                    $data['name'],
+                    $data['key'] ?? 0,
+                    $data['values'] ?? [],
+                );
+            })->filter();
+        } catch (Throwable) {}
 
         return LayoutItemCollection::make($values);
     }

@@ -34,6 +34,7 @@ final class Layout implements LayoutContract
         private string $title,
         private string $name,
         private iterable $fields,
+        private ?int $limit = null,
     ) {
     }
 
@@ -52,6 +53,23 @@ final class Layout implements LayoutContract
     public function key(): int
     {
         return $this->key;
+    }
+
+    public function setLimit(?int $limit): self
+    {
+        $this->limit = $limit;
+
+        return $this;
+    }
+
+    public function hasLimit(): bool
+    {
+        return ! is_null($this->limit);
+    }
+
+    public function limit(): ?int
+    {
+        return $this->limit;
     }
 
     public function name(): string

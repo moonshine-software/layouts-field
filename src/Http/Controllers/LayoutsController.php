@@ -11,6 +11,7 @@ use MoonShine\Http\Controllers\MoonShineController;
 use MoonShine\Http\Responses\MoonShineJsonResponse;
 use MoonShine\Layouts\Casts\LayoutItem;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
+use MoonShine\Layouts\Fields\Layout;
 use MoonShine\Layouts\Fields\Layouts;
 use MoonShine\MoonShineRequest;
 use Throwable;
@@ -29,6 +30,9 @@ final class LayoutsController extends MoonShineController
                 ->toast('Field not found', ToastType::ERROR);
         }
 
+        /**
+         * @var Layout $layout
+         */
         $layout = $field
             ->setValue(LayoutItemCollection::make([
                 new LayoutItem(
@@ -42,6 +46,15 @@ final class LayoutsController extends MoonShineController
         if(is_null($layout)) {
             return MoonShineJsonResponse::make()
                 ->toast('Layout not found', ToastType::ERROR);
+        }
+
+        $layoutCount = (int) $request
+            ->collect('counts')
+            ->get($layout->name(), 0);
+
+        if($layout->hasLimit() && $layout->limit() <= $layoutCount) {
+            return MoonShineJsonResponse::make()
+                ->toast("Limit count {$layout->limit()}", ToastType::ERROR);
         }
 
         return MoonShineJsonResponse::make()->html((string) $layout);

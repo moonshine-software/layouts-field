@@ -45,11 +45,13 @@ final class Layouts extends Field
         string $title,
         string $name,
         iterable $fields,
+        ?int $limit = null
     ): self {
         $this->layouts[] = new Layout(
             $title,
             $name,
             $fields,
+            $limit
         );
 
         return $this;
@@ -106,25 +108,33 @@ final class Layouts extends Field
 
 
         $filled = $values->map(function (LayoutItem $data) use ($layouts) {
-            /** @var Layout $layout */
-            $layout = clone $layouts
-                ->findByName($data->getName())
-                ?->when(
-                    $this->disableSort,
-                    fn(Layout $l) => $l->disableSort()
-                )
-                ?->when(
+            /** @var ?Layout $layout */
+            $layout = $layouts->findByName($data->getName());
+
+            if(is_null($layout)) {
+                return null;
+            }
+
+            $layout = clone $layout->when(
+                $this->disableSort,
+                fn(Layout $l) => $l->disableSort()
+            )
+                ->when(
                     $this->isForcePreview(),
                     fn(Layout $l) => $l->forcePreview()
                 )
-                ?->setKey($data->getKey());
+                ->setKey($data->getKey());
 
             $fields = $layout->fields()->fillCloned($data->getValues());
 
             $layout
                 ->setFields($fields)
                 ->fields()
-                ->prepend(Hidden::make('_layout')->setValue($data->getName()))
+                ->prepend(
+                    Hidden::make('_layout')
+                        ->customAttributes(['class' => '_layout-value'])
+                        ->setValue($data->getName())
+                )
                 ->prepareAttributes()
                 ->prepareReindex($this);
 

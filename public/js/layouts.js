@@ -26,12 +26,19 @@ document.addEventListener('alpine:init', () => {
         add(name) {
             const t = this
 
+            let layoutsCount = {}
+            const layouts = document.querySelectorAll('._layout-value')
+            layouts.forEach(function(l) {
+                layoutsCount[l.value] = layoutsCount[l.value] ? layoutsCount[l.value]+1 : 1
+            })
+
             MoonShine.request(t, t.url, 'post', {
                 field: t.column,
                 name: name,
+                counts: layoutsCount
             }, {}, {
                 beforeCallback: function(data) {
-                    t.blocksContainer.innerHTML += data.html
+                    t.blocksContainer.innerHTML += data.html ?? ''
                     t._reindex()
                 }
             })

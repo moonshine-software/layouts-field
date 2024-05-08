@@ -38,7 +38,13 @@ document.addEventListener('alpine:init', () => {
                 counts: layoutsCount
             }, {}, {
                 beforeCallback: function(data) {
-                    t.blocksContainer.innerHTML += data.html ?? ''
+                    const tempContainer = document.createElement('div');
+                    tempContainer.innerHTML = data.html ?? '';
+
+                    while (tempContainer.firstChild) {
+                        t.blocksContainer.appendChild(tempContainer.firstChild);
+                    }
+                    
                     t._reindex()
                 }
             })

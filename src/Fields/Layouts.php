@@ -125,7 +125,8 @@ final class Layouts extends Field
                 )
                 ->setKey($data->getKey());
 
-            $fields = $layout->fields()->fillCloned($data->getValues());
+            $fields = $layout->fields();
+            $fields->fill($data->getValues());
 
             $layout
                 ->setFields($fields)

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace MoonShine\Layouts\Fields;
 
 use Closure;
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use MoonShine\ActionButtons\ActionButton;
 use MoonShine\Components\Dropdown;
 use MoonShine\Components\Link;
+use MoonShine\Contracts\Fields\HasFields;
+use MoonShine\Contracts\Resources\ResourceContract;
 use MoonShine\Fields\Field;
 use MoonShine\Fields\Hidden;
 use MoonShine\Layouts\Casts\LayoutItem;
@@ -17,6 +19,7 @@ use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Collections\LayoutCollection;
 use MoonShine\Layouts\Casts\LayoutsCast;
 use MoonShine\Layouts\Contracts\LayoutContract;
+use MoonShine\Pages\Page;
 use Throwable;
 
 final class Layouts extends Field
@@ -40,6 +43,18 @@ final class Layouts extends Field
     private bool $disableAdd = false;
 
     private bool $disableSort = false;
+
+    private ?ResourceContract $resource = null;
+
+    private ?Page $page = null;
+
+    public function nowOn(?Page $page = null, ?ResourceContract $resource = null): self
+    {
+        $this->page = $page;
+        $this->resource = $resource;
+
+        return $this;
+    }
 
     public function addLayout(
         string $title,
@@ -67,8 +82,8 @@ final class Layouts extends Field
     public function getAddRoute(): string
     {
         return route('moonshine.layouts-field.store', [
-            'resourceUri' => moonshineRequest()->getResourceUri(),
-            'pageUri' => moonshineRequest()->getPageUri(),
+            'resourceUri' => $this->resource ? $this->resource->uriKey() : moonshineRequest()->getResourceUri(),
+            'pageUri' => $this->page ? $this->page->uriKey() : moonshineRequest()->getPageUri(),
         ]);
     }
 
@@ -106,7 +121,6 @@ final class Layouts extends Field
             );
         }
 
-
         $filled = $values->map(function (LayoutItem $data) use ($layouts) {
             /** @var ?Layout $layout */
             $layout = $layouts->findByName($data->getName());
@@ -125,8 +139,10 @@ final class Layouts extends Field
                 )
                 ->setKey($data->getKey());
 
-            $fields = $layout->fields();
-            $fields->fill($data->getValues());
+            $fields = $this->fillClonedRecursively(
+                $layout->fields(),
+                $data->getValues()
+            );
 
             $layout
                 ->setFields($fields)
@@ -137,12 +153,30 @@ final class Layouts extends Field
                         ->setValue($data->getName())
                 )
                 ->prepareAttributes()
-                ->prepareReindex($this);
+                ->prepareReindex($this)
+            ;
 
             return $layout->removeButton($this->getRemoveButton());
         })->filter();
 
         return LayoutCollection::make($filled);
+    }
+
+    private function fillClonedRecursively(Collection $collection, mixed $data): Collection
+    {
+        return $collection->map(function(mixed $item) use($data) {
+            if($item instanceof HasFields) {
+                $item = (clone $item)->fields(
+                    $this->fillClonedRecursively($item->getFields(), $data)->toArray()
+                );
+            }
+
+            if($item instanceof Field) {
+                $item->resolveFill($data);
+            }
+
+            return clone $item;
+        });
     }
 
     public function getAddButton(): ?ActionButton

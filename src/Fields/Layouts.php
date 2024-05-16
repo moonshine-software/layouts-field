@@ -15,9 +15,9 @@ use MoonShine\Contracts\Resources\ResourceContract;
 use MoonShine\Fields\Field;
 use MoonShine\Fields\Hidden;
 use MoonShine\Layouts\Casts\LayoutItem;
-use MoonShine\Layouts\Collections\LayoutItemCollection;
-use MoonShine\Layouts\Collections\LayoutCollection;
 use MoonShine\Layouts\Casts\LayoutsCast;
+use MoonShine\Layouts\Collections\LayoutCollection;
+use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Contracts\LayoutContract;
 use MoonShine\Pages\Page;
 use Throwable;
@@ -112,7 +112,7 @@ final class Layouts extends Field
         /** @var LayoutItemCollection $value */
         $values = $this->toValue();
 
-        if(!$values instanceof LayoutItemCollection) {
+        if (! $values instanceof LayoutItemCollection) {
             $values = (new LayoutsCast())->get(
                 $this->getData(),
                 $this->column(),
@@ -125,17 +125,17 @@ final class Layouts extends Field
             /** @var ?Layout $layout */
             $layout = $layouts->findByName($data->getName());
 
-            if(is_null($layout)) {
+            if (is_null($layout)) {
                 return null;
             }
 
             $layout = clone $layout->when(
                 $this->disableSort,
-                fn(Layout $l) => $l->disableSort()
+                fn (Layout $l) => $l->disableSort()
             )
                 ->when(
                     $this->isForcePreview(),
-                    fn(Layout $l) => $l->forcePreview()
+                    fn (Layout $l) => $l->forcePreview()
                 )
                 ->setKey($data->getKey());
 
@@ -153,8 +153,7 @@ final class Layouts extends Field
                         ->setValue($data->getName())
                 )
                 ->prepareAttributes()
-                ->prepareReindex($this)
-            ;
+                ->prepareReindex($this);
 
             return $layout->removeButton($this->getRemoveButton());
         })->filter();
@@ -164,14 +163,14 @@ final class Layouts extends Field
 
     private function fillClonedRecursively(Collection $collection, mixed $data): Collection
     {
-        return $collection->map(function(mixed $item) use($data) {
-            if($item instanceof HasFields) {
+        return $collection->map(function (mixed $item) use ($data) {
+            if ($item instanceof HasFields) {
                 $item = (clone $item)->fields(
                     $this->fillClonedRecursively($item->getFields(), $data)->toArray()
                 );
             }
 
-            if($item instanceof Field) {
+            if ($item instanceof Field) {
                 $item->resolveFill($data);
             }
 
@@ -181,7 +180,7 @@ final class Layouts extends Field
 
     public function getAddButton(): ?ActionButton
     {
-        if($this->disableAdd) {
+        if ($this->disableAdd) {
             return null;
         }
 
@@ -234,7 +233,7 @@ final class Layouts extends Field
 
     public function getRemoveButton(): ?ActionButton
     {
-        if($this->disableRemove) {
+        if ($this->disableRemove) {
             return null;
         }
 
@@ -275,29 +274,29 @@ final class Layouts extends Field
                 $layout = $this->getLayouts()->findByName($value['_layout']);
                 unset($value['_layout']);
 
-                if(is_null($layout)) {
+                if (is_null($layout)) {
                     return [];
                 }
 
                 $applyValues = [];
 
                 $layout->fields()->onlyFields()->each(
-                   function (Field $field) use ($value, $index, &$applyValues): void {
+                    function (Field $field) use ($value, $index, &$applyValues): void {
                         $field->appendRequestKeyPrefix(
                             "{$this->column()}.$index",
                             $this->requestKeyPrefix()
                         );
 
-                       $apply = $field->apply(
-                           fn ($data): mixed => data_set($data, $field->column(), $value[$field->column()] ?? ''),
-                           $value
-                       );
+                        $apply = $field->apply(
+                            fn ($data): mixed => data_set($data, $field->column(), $value[$field->column()] ?? ''),
+                            $value
+                        );
 
-                       data_set(
-                           $applyValues,
-                           $field->column(),
-                           data_get($apply, $field->column())
-                       );
+                        data_set(
+                            $applyValues,
+                            $field->column(),
+                            data_get($apply, $field->column())
+                        );
                     }
                 );
 
@@ -319,11 +318,9 @@ final class Layouts extends Field
      */
     protected function resolveBeforeApply(mixed $data): mixed
     {
-        $this->resolveCallback($data, function (Field $field, mixed $value) {
+        return $this->resolveCallback($data, function (Field $field, mixed $value) {
             $field->beforeApply($value);
         });
-
-        return $data;
     }
 
     /**
@@ -331,11 +328,9 @@ final class Layouts extends Field
      */
     protected function resolveAfterApply(mixed $data): mixed
     {
-        $this->resolveCallback($data, function (Field $field, mixed $value) {
+        return $this->resolveCallback($data, function (Field $field, mixed $value) {
             $field->afterApply($value);
         });
-
-        return $data;
     }
 
     /**
@@ -343,11 +338,9 @@ final class Layouts extends Field
      */
     protected function resolveAfterDestroy(mixed $data): mixed
     {
-        $this->resolveCallback($data, function (Field $field, mixed $value) {
+        return $this->resolveCallback($data, function (Field $field, mixed $value) {
             $field->afterDestroy($value);
         }, fill: true);
-
-        return $data;
     }
 
     /**
@@ -357,24 +350,24 @@ final class Layouts extends Field
     {
         $requestValues = array_filter($this->requestValue() ?: []);
 
-        foreach ($requestValues as $value) {
+        foreach ($requestValues as $index => $value) {
             $layout = $this->getLayouts()->findByName($value['_layout']);
 
-            if(is_null($layout)) {
+            if (is_null($layout)) {
                 continue;
             }
 
             $layout->fields()
                 ->onlyFields()
-                ->each(function (Field $field, $index) use ($data, $callback, $fill): void {
+                ->each(function (Field $field) use ($data, $index, $value, $callback, $fill): void {
                     $field->appendRequestKeyPrefix(
                         "{$this->column()}.$index",
                         $this->requestKeyPrefix()
                     );
 
-                    $field->when($fill, fn(Field $f) => $f->resolveFill($data));
+                    $field->when($fill, fn (Field $f) => $f->resolveFill($data));
 
-                    $callback($field, $data);
+                    $callback($field, $value);
                 });
         }
 

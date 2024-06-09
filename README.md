@@ -1,5 +1,5 @@
 # ![Layouts field for MoonShine](https://github.com/moonshine-software/moonshine/raw/2.x/art/lego.png)
-## Beta version
+## Layouts field for MoonShine - Beta version
 
 ## Quick start
 

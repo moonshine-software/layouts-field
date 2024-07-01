@@ -64,3 +64,16 @@ You can change the default "Add layout" button's text using the [ActionButton](h
 Layouts::make('Content')
     ->addButton(ActionButton::make('New layout')->icon('heroicons.outline.plus')->primary())
 ```
+#### Adding search field
+You can add search input in layout list as follows:
+```php
+Layouts::make('Content')
+  ->addLayout('Info section', 'info', [
+    ...
+  ])
+  ...
+  ->addLayout('Slider section', 'slider', [
+    ...
+  ])
+  ->searchable()
+```

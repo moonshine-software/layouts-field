@@ -20,6 +20,7 @@ use MoonShine\Layouts\Collections\LayoutCollection;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Contracts\LayoutContract;
 use MoonShine\Pages\Page;
+use MoonShine\Support\Condition;
 use Throwable;
 
 final class Layouts extends Field
@@ -45,6 +46,8 @@ final class Layouts extends Field
     private bool $disableSort = false;
 
     private ?ResourceContract $resource = null;
+
+    private bool $isSearchable = false;
 
     private ?Page $page = null;
 
@@ -192,6 +195,14 @@ final class Layouts extends Field
         return $this->addButton;
     }
 
+    public function searchable(Closure|bool|null $condition = null): static
+    {
+        $this->isSearchable = Condition::boolean($condition, true);
+
+        return $this;
+    }
+
+
     public function disableAdd(): self
     {
         $this->disableAdd = true;
@@ -223,7 +234,7 @@ final class Layouts extends Field
     public function getDropdown(): Dropdown
     {
         if (is_null($this->dropdown)) {
-            $this->dropdown = Dropdown::make();
+            $this->dropdown = Dropdown::make()->searchable($this->isSearchable);
         }
 
         return $this->dropdown

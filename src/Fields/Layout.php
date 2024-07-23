@@ -128,7 +128,7 @@ final class Layout implements LayoutContract
 
                 FlexibleRender::make($this->title()),
 
-                $this->getHeadingAdditionalFields(),
+                ...$this->getHeadingAdditionalFields(),
 
                 $this->getRemoveButton(),
             ]))

@@ -35,6 +35,7 @@ final class Layout implements LayoutContract
         private string $name,
         private iterable $fields,
         private ?int $limit = null,
+        private ?iterable $headingAdditionalFields = null
     ) {
     }
 
@@ -87,6 +88,13 @@ final class Layout implements LayoutContract
         return $this;
     }
 
+    public function headingAdditionalFields(iterable $fields): self
+    {
+        $this->headingAdditionalFields = $fields;
+
+        return $this;
+    }
+
     public function disableSort(): self
     {
         $this->disableSort = true;
@@ -101,6 +109,9 @@ final class Layout implements LayoutContract
         return $this;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function headingFields(): Fields
     {
         return Fields::make([
@@ -116,6 +127,8 @@ final class Layout implements LayoutContract
                     ->iterableAttributes(),
 
                 FlexibleRender::make($this->title()),
+
+                $this->getHeadingAdditionalFields(),
 
                 $this->getRemoveButton(),
             ]))
@@ -141,6 +154,18 @@ final class Layout implements LayoutContract
 
 
         return $this->fields;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function getHeadingAdditionalFields(): Fields
+    {
+        if (! $this->headingAdditionalFields instanceof Fields) {
+            $this->headingAdditionalFields = Fields::make($this->headingAdditionalFields);
+        }
+
+        return $this->headingAdditionalFields;
     }
 
     public function removeButton(?ActionButton $button): self

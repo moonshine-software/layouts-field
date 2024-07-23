@@ -64,7 +64,7 @@ final class Layouts extends Field
         string $name,
         iterable $fields,
         ?int $limit = null,
-        iterable $headingAdditionalFields = null,
+        ?iterable $headingAdditionalFields = null,
     ): self {
         $this->layouts[] = new Layout(
             $title,
@@ -161,12 +161,12 @@ final class Layouts extends Field
                 ->prepareReindex($this);
 
             $fields = $this->fillClonedRecursively(
-                $layout->headingAdditionalFields(),
+                $layout->getHeadingAdditionalFields(),
                 $data->getValues()
             );
 
             $layout
-                ->setHeadingAdditionalFields($fields);
+                ->headingAdditionalFields($fields);
 
             return $layout->removeButton($this->getRemoveButton());
         })->filter();

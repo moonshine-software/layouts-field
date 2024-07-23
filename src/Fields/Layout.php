@@ -88,7 +88,7 @@ final class Layout implements LayoutContract
         return $this;
     }
 
-    public function setHeadingAdditionalFields(iterable $fields): self
+    public function headingAdditionalFields(iterable $fields): self
     {
         $this->headingAdditionalFields = $fields;
 
@@ -109,6 +109,9 @@ final class Layout implements LayoutContract
         return $this;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function headingFields(): Fields
     {
         return Fields::make([
@@ -125,7 +128,7 @@ final class Layout implements LayoutContract
 
                 FlexibleRender::make($this->title()),
 
-                ...$this->headingAdditionalFields,
+                $this->getHeadingAdditionalFields(),
 
                 $this->getRemoveButton(),
             ]))
@@ -156,7 +159,7 @@ final class Layout implements LayoutContract
     /**
      * @throws Throwable
      */
-    public function headingAdditionalFields(): Fields
+    public function getHeadingAdditionalFields(): Fields
     {
         if (! $this->headingAdditionalFields instanceof Fields) {
             $this->headingAdditionalFields = Fields::make($this->headingAdditionalFields);

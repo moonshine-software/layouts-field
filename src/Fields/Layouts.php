@@ -114,7 +114,6 @@ final class Layouts extends Field
     public function getFilledLayouts(): LayoutCollection
     {
         $layouts = $this->getLayouts();
-        /** @var LayoutItemCollection $value */
         $values = $this->toValue();
 
         if (! $values instanceof LayoutItemCollection) {
@@ -136,11 +135,11 @@ final class Layouts extends Field
 
             $layout = clone $layout->when(
                 $this->disableSort,
-                fn (Layout $l) => $l->disableSort()
+                fn (Layout $l): Layout => $l->disableSort()
             )
                 ->when(
                     $this->isForcePreview(),
-                    fn (Layout $l) => $l->forcePreview()
+                    fn (Layout $l): Layout => $l->forcePreview()
                 )
                 ->setKey($data->getKey());
 
@@ -248,7 +247,7 @@ final class Layouts extends Field
         }
 
         return $this->dropdown
-            ->toggler(fn () => $this->getAddButton())
+            ->toggler(fn (): ?ActionButton => $this->getAddButton())
             ->items($this->getLayoutButtons());
     }
 
@@ -266,7 +265,7 @@ final class Layouts extends Field
         }
 
         return $this->removeButton
-            ->onClick(fn () => 'remove', 'stop');
+            ->onClick(fn (): string => 'remove', 'stop');
     }
 
     public function disableSort(): self
@@ -291,7 +290,7 @@ final class Layouts extends Field
         return function ($item) {
             $requestValues = array_filter($this->requestValue() ?: []);
 
-            $data = collect($requestValues)->map(function ($value, $index) {
+            $data = collect($requestValues)->map(function (array $value, $index): array {
                 $layout = $this->getLayouts()->findByName($value['_layout']);
                 unset($value['_layout']);
 
@@ -339,7 +338,7 @@ final class Layouts extends Field
      */
     protected function resolveBeforeApply(mixed $data): mixed
     {
-        return $this->resolveCallback($data, function (Field $field, mixed $value) {
+        return $this->resolveCallback($data, function (Field $field, mixed $value): void {
             $field->beforeApply($value);
         });
     }
@@ -349,7 +348,7 @@ final class Layouts extends Field
      */
     protected function resolveAfterApply(mixed $data): mixed
     {
-        return $this->resolveCallback($data, function (Field $field, mixed $value) {
+        return $this->resolveCallback($data, function (Field $field, mixed $value): void {
             $field->afterApply($value);
         });
     }
@@ -359,7 +358,7 @@ final class Layouts extends Field
      */
     protected function resolveAfterDestroy(mixed $data): mixed
     {
-        return $this->resolveCallback($data, function (Field $field, mixed $value) {
+        return $this->resolveCallback($data, function (Field $field, mixed $value): void {
             $field->afterDestroy($value);
         }, fill: true);
     }
@@ -386,7 +385,7 @@ final class Layouts extends Field
                         $this->requestKeyPrefix()
                     );
 
-                    $field->when($fill, fn (Field $f) => $f->resolveFill($data));
+                    $field->when($fill, fn (Field $f): Field => $f->resolveFill($data));
 
                     $callback($field, $value);
                 });

@@ -12,5 +12,13 @@ use MoonShine\Layouts\Casts\LayoutItem;
  */
 final class LayoutItemCollection extends Collection
 {
+    public function findByName(string $value): ?LayoutItem
+    {
+        return $this->firstWhere(fn(LayoutItem $item): bool => $item->getName() === $value);
+    }
 
+    public function findByKey(int $value): ?LayoutItem
+    {
+        return $this->firstWhere(fn(LayoutItem $item): bool => $item->getKey() === $value);
+    }
 }

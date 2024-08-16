@@ -116,11 +116,11 @@ final class Layout implements LayoutContract
     {
         return Fields::make([
             Flex::make(array_filter([
-                ! $this->disableSort ? Preview::make(
-                    formatted: static fn () => Icon::make('heroicons.outline.bars-4')
-                )
-                    ->withoutWrapper()
-                    ->customAttributes(['class' => 'handle', 'style' => 'cursor: move']) : null,
+                $this->disableSort ? null : Preview::make(
+                        formatted: static fn () => Icon::make('heroicons.outline.bars-4')
+                    )
+                        ->withoutWrapper()
+                        ->customAttributes(['class' => 'handle', 'style' => 'cursor: move']),
 
                 Position::make()
                     ->withoutWrapper()
@@ -149,7 +149,7 @@ final class Layout implements LayoutContract
 
         if ($this->isForcePreview) {
             $this->fields->onlyFields()
-                ->map(fn (Field $f) => $f->forcePreview());
+                ->map(fn (Field $f): Field => $f->forcePreview());
         }
 
 

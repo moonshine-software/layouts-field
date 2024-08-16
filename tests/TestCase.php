@@ -36,7 +36,7 @@ abstract class TestCase extends Orchestra
         moonshine()->resources([
             $this->resource,
         ], true)->menu([
-            MenuItem::make('Test', $this->resource)
+            MenuItem::make('Test', $this->resource),
         ]);
     }
 

@@ -30,7 +30,7 @@ class LayoutsCast implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): LayoutItemCollection
     {
-        if(!$value instanceof LayoutItemCollection) {
+        if(! $value instanceof LayoutItemCollection) {
             return $this->_map($value);
         }
 
@@ -46,12 +46,13 @@ class LayoutsCast implements CastsAttributes
                 $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
             }
 
-            $values = collect($value)->map(fn(array $data): LayoutItem => new LayoutItem(
+            $values = collect($value)->map(fn (array $data): LayoutItem => new LayoutItem(
                 $data['name'],
                 $data['key'] ?? 0,
                 $data['values'] ?? [],
             ))->filter();
-        } catch (Throwable) {}
+        } catch (Throwable) {
+        }
 
         return LayoutItemCollection::make($values);
     }

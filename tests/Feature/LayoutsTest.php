@@ -27,7 +27,7 @@ final class LayoutsTest extends TestCase
             'data' => [
                 ['_layout' => 'first', 'title' => 'First title', 'image' => $image],
                 ['_layout' => 'second', 'title' => 'Second title', 'images' => [$image]],
-            ]
+            ],
         ];
 
         $this->actingAs($this->adminUser, 'moonshine')
@@ -49,7 +49,7 @@ final class LayoutsTest extends TestCase
             'data' => [
                 ['_layout' => 'first', 'title' => 'First title', 'hidden_image' => $image->hashName()],
                 ['_layout' => 'second', 'title' => 'Second title', 'hidden_images' => [$image->hashName()]],
-            ]
+            ],
         ];
 
         $this->actingAs($this->adminUser, 'moonshine')
@@ -69,7 +69,7 @@ final class LayoutsTest extends TestCase
             'data' => [
                 ['_layout' => 'first', 'title' => 'First title'],
                 ['_layout' => 'second', 'title' => 'Second title'],
-            ]
+            ],
         ];
 
         $this->actingAs($this->adminUser, 'moonshine')

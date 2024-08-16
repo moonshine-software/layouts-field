@@ -37,7 +37,7 @@ final class LayoutsController extends MoonShineController
             ->setValue(LayoutItemCollection::make([
                 new LayoutItem(
                     $request->get('name'),
-                )
+                ),
             ]))
             ->getFilledLayouts()
             ->findByName($request->get('name'))
@@ -67,7 +67,7 @@ final class LayoutsController extends MoonShineController
     {
         $page = $request->getPage();
 
-        if(!$resource = $request->getResource()) {
+        if(! $resource = $request->getResource()) {
             $fields = Fields::make(is_null($page->pageType()) ? $page->components() : $page->fields());
         } else {
             $fields = match ($page->pageType()) {

@@ -12,8 +12,7 @@ final class LayoutItem implements JsonSerializable
         private string $name,
         private int $key = 0,
         private array $values = []
-    )
-    {
+    ) {
     }
 
     public function getName(): string

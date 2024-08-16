@@ -117,8 +117,8 @@ final class Layout implements LayoutContract
         return Fields::make([
             Flex::make(array_filter([
                 $this->disableSort ? null : Preview::make(
-                        formatted: static fn () => Icon::make('heroicons.outline.bars-4')
-                    )
+                    formatted: static fn () => Icon::make('heroicons.outline.bars-4')
+                )
                         ->withoutWrapper()
                         ->customAttributes(['class' => 'handle', 'style' => 'cursor: move']),
 

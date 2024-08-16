@@ -10,7 +10,7 @@ use MoonShine\Layouts\Casts\LayoutsCast;
 final class TestModel extends Model
 {
     protected $fillable = [
-        'data'
+        'data',
     ];
 
     protected $casts = [

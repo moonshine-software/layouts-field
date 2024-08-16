@@ -25,7 +25,7 @@ final class TestResource extends ModelResource
             ])->addLayout('second', 'second', [
                 Text::make('Title'),
                 Image::make('Images')->multiple()->removable(),
-            ])
+            ]),
         ];
     }
 

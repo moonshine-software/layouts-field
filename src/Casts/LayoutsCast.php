@@ -3,38 +3,31 @@
 namespace MoonShine\Layouts\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Database\Eloquent\Model;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
 use Throwable;
 
 class LayoutsCast implements CastsAttributes
 {
-    /**
-     * Cast the given value.
-     *
-     * @param  array<string, mixed>  $attributes
-     */
-    public function get(Model $model, string $key, mixed $value, array $attributes): LayoutItemCollection
+    public function get(Model $model, string $key, mixed $value, array $attributes): ?LayoutItemCollection
     {
-        if($value instanceof LayoutItemCollection) {
-            return $value;
+        if (! isset($attributes[$key])) {
+            return null;
         }
 
-        return $this->_map($value);
+        $data = Json::decode($attributes[$key]);
+
+        if($data instanceof LayoutItemCollection) {
+            return $data;
+        }
+
+        return is_array($data) ? $this->_map($data) : null;
     }
 
-    /**
-     * Prepare the given value for storage.
-     *
-     * @param  array<string, mixed>  $attributes
-     */
-    public function set(Model $model, string $key, mixed $value, array $attributes): LayoutItemCollection
+    public function set(Model $model, string $key, mixed $value, array $attributes): array
     {
-        if(! $value instanceof LayoutItemCollection) {
-            return $this->_map($value);
-        }
-
-        return $value;
+        return [$key => Json::encode($value)];
     }
 
     private function _map(mixed $value): LayoutItemCollection

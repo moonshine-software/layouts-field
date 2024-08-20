@@ -125,7 +125,7 @@ final class Layouts extends Field
             );
         }
 
-        $filled = $values->map(function (LayoutItem $data) use ($layouts) {
+        $filled = $values ? $values->map(function (LayoutItem $data) use ($layouts) {
             /** @var ?Layout $layout */
             $layout = $layouts->findByName($data->getName());
 
@@ -168,7 +168,7 @@ final class Layouts extends Field
                 ->headingAdditionalFields($fields);
 
             return $layout->removeButton($this->getRemoveButton());
-        })->filter();
+        })->filter() : [];
 
         return LayoutCollection::make($filled);
     }

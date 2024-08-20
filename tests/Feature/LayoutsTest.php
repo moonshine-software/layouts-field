@@ -22,6 +22,36 @@ final class LayoutsTest extends TestCase
     }
 
     #[Test]
+    public function it_simple_create(): void
+    {
+        $image = UploadedFile::fake()->image('image.jpg');
+
+        $data = [
+            'data' => [
+                ['_layout' => 'first', 'title' => 'First title', 'image' => $image, 'json' => [
+                    ['key' => 'key 1', 'value' => 'value 1'],
+                    ['key' => 'key 2', 'value' => 'value 2'],
+                ]],
+                ['_layout' => 'second', 'title' => 'Second title', 'images' => [$image], 'json' => [
+                    ['title' => 'Title 1', 'image' => $image],
+                ]],
+            ],
+        ];
+
+        $this->actingAs($this->adminUser, 'moonshine')
+            ->post($this->resource->route('crud.store'), $data)
+            ->assertRedirect();
+
+        $model = TestModel::query()->first();
+
+        $first = static fn(TestModel $model): array => $model->data->findByName('first')->get('json');
+        $second = static fn(TestModel $model): array => $model->data->findByName('second')->get('json');
+
+        $this->assertEquals(['key 1' => 'value 1', 'key 2' => 'value 2'], $first($model));
+        $this->assertEquals([['title' => 'Title 1', 'image' => $image->hashName()]], $second($model));
+    }
+
+    #[Test]
     public function it_json_with_image(): void
     {
         $model = TestModel::query()->create();

@@ -29,7 +29,7 @@ final class TestResource extends ModelResource
                     ]),
                     Column::make([
                         Image::make('Image')->removable(),
-                    ])
+                    ]),
                 ]),
                 Json::make('Json')->keyValue(),
             ])->addLayout('second', 'second', [

@@ -1,5 +1,5 @@
 # ![Layouts field for MoonShine](https://github.com/moonshine-software/moonshine/raw/2.x/art/lego.png)
-## Layouts field for MoonShine - Beta version
+## Layouts field for MoonShine
 
 ## Quick start
 
@@ -12,7 +12,7 @@ composer require moonshine/layouts-field
 ### Usage
 
 Field Layouts for MoonShine allows you to easily manage repeating groups of fields. You will be able to add, delete and sort groups consisting of basic fields.
-There are some restrictions on the use of fields in the Layouts field. You can use any basic fields except **Json** and **Relationships** fields.
+There are some restrictions on the use of fields in the Layouts field. You can use any basic fields except **Relationships** fields.
 
 ```php
 use MoonShine\Layouts\Fields\Layouts;

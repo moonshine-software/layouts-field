@@ -73,8 +73,8 @@ final class LayoutsTest extends TestCase
 
         $this->store($model, $data);
 
-        $first = static fn(TestModel $model): array => $model->data->findByName('first')->get('json');
-        $second = static fn(TestModel $model): array => $model->data->findByName('second')->get('json');
+        $first = static fn (TestModel $model): array => $model->data->findByName('first')->get('json');
+        $second = static fn (TestModel $model): array => $model->data->findByName('second')->get('json');
 
         $this->assertEquals(['key 1' => 'value 1', 'key 2' => 'value 2'], $first($model));
         $this->assertEquals([['title' => 'Title 1', 'image' => $image->hashName()]], $second($model));
@@ -125,8 +125,8 @@ final class LayoutsTest extends TestCase
 
         $this->store($model, $data);
 
-        $first = static fn(TestModel $model): LayoutItem => $model->data->findByName('first');
-        $second = static fn(TestModel $model): LayoutItem => $model->data->findByName('second');
+        $first = static fn (TestModel $model): LayoutItem => $model->data->findByName('first');
+        $second = static fn (TestModel $model): LayoutItem => $model->data->findByName('second');
 
         $this->assertEquals('First title', $first($model)->get('title'));
         $this->assertEquals('Second title', $second($model)->get('title'));

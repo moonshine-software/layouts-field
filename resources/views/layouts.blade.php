@@ -3,6 +3,7 @@
     `{{ $element->column() }}`
 )"
     {{ $element->attributes() }}
+    data-top-level="true"
 >
     <div class="_layouts-blocks">
         @foreach($element->getFilledLayouts() as $layout)

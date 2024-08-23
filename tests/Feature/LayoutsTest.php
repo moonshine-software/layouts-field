@@ -44,8 +44,8 @@ final class LayoutsTest extends TestCase
 
         $model = TestModel::query()->first();
 
-        $first = static fn(TestModel $model): array => $model->data->findByName('first')->get('json');
-        $second = static fn(TestModel $model): array => $model->data->findByName('second')->get('json');
+        $first = static fn (TestModel $model): array => $model->data->findByName('first')->get('json');
+        $second = static fn (TestModel $model): array => $model->data->findByName('second')->get('json');
 
         $this->assertEquals(['key 1' => 'value 1', 'key 2' => 'value 2'], $first($model));
         $this->assertEquals([['title' => 'Title 1', 'image' => $image->hashName()]], $second($model));

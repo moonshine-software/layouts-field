@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace MoonShine\Layouts\Http\Controllers;
 
 use MoonShine\Laravel\Collections\Fields;
-use MoonShine\Support\Enums\PageType;
-use MoonShine\Support\Enums\ToastType;
 use MoonShine\Laravel\Http\Controllers\MoonShineController;
 use MoonShine\Laravel\Http\Responses\MoonShineJsonResponse;
+use MoonShine\Laravel\MoonShineRequest;
 use MoonShine\Layouts\Casts\LayoutItem;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Fields\Layout;
 use MoonShine\Layouts\Fields\Layouts;
-use MoonShine\Laravel\MoonShineRequest;
+use MoonShine\Support\Enums\PageType;
+use MoonShine\Support\Enums\ToastType;
 use Throwable;
 
 final class LayoutsController extends MoonShineController
@@ -25,7 +25,7 @@ final class LayoutsController extends MoonShineController
     {
         $field = $this->getField($request);
 
-        if(is_null($field)) {
+        if (is_null($field)) {
             return MoonShineJsonResponse::make()
                 ->toast('Field not found', ToastType::ERROR);
         }
@@ -43,7 +43,7 @@ final class LayoutsController extends MoonShineController
             ->findByName($request->get('name'))
             ?->removeButton($field->getRemoveButton());
 
-        if(is_null($layout)) {
+        if (is_null($layout)) {
             return MoonShineJsonResponse::make()
                 ->toast('Layout not found', ToastType::ERROR);
         }
@@ -52,7 +52,7 @@ final class LayoutsController extends MoonShineController
             ->collect('counts')
             ->get($layout->name(), 0);
 
-        if($layout->hasLimit() && $layout->limit() <= $layoutCount) {
+        if ($layout->hasLimit() && $layout->limit() <= $layoutCount) {
             return MoonShineJsonResponse::make()
                 ->toast("Limit count {$layout->limit()}", ToastType::ERROR);
         }
@@ -67,7 +67,7 @@ final class LayoutsController extends MoonShineController
     {
         $page = $request->getPage();
 
-        if(! $resource = $request->getResource()) {
+        if (! $resource = $request->getResource()) {
             $fields = Fields::make(is_null($page->getPageType()) ? $page->components() : $page->getFields());
         } else {
             $fields = match ($page->getPageType()) {

@@ -3,12 +3,11 @@
 namespace MoonShine\Layouts\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use MoonShine\Layouts\Providers\MoonShineLayoutsServiceProvider;
-use MoonShine\Layouts\Tests\Fixtures\TestResource;
-use MoonShine\MenuManager\MenuItem;
 use MoonShine\Laravel\Models\MoonshineUser;
 use MoonShine\Laravel\Models\MoonshineUserRole;
 use MoonShine\Laravel\Providers\MoonShineServiceProvider;
+use MoonShine\Layouts\Providers\MoonShineLayoutsServiceProvider;
+use MoonShine\Layouts\Tests\Fixtures\TestResource;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra

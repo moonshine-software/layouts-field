@@ -18,7 +18,7 @@ class LayoutsCast implements CastsAttributes
 
         $data = Json::decode($attributes[$key]);
 
-        if($data instanceof LayoutItemCollection) {
+        if ($data instanceof LayoutItemCollection) {
             return $data;
         }
 
@@ -35,7 +35,7 @@ class LayoutsCast implements CastsAttributes
         $values = [];
 
         try {
-            if(is_string($value) && str($value)->isJson()) {
+            if (is_string($value) && str($value)->isJson()) {
                 $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
             }
 

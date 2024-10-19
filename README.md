@@ -1,6 +1,17 @@
 # ![Layouts field for MoonShine](https://github.com/moonshine-software/moonshine/raw/2.x/art/lego.png)
 ## Layouts field for MoonShine
 
+### Requirements
+
+- MoonShine v3.0+
+
+### Support MoonShine versions
+
+| MoonShine   | Layouts |
+|-------------|---------|
+| 2.0+        | 1.0+    |
+| 3.0+        | 2.0+    |
+
 ## Quick start
 
 ### Install
@@ -48,21 +59,24 @@ use MoonShine\Layouts\Casts\LayoutsCast;
 
 class Article extends Model
 {
-    protected $casts = [
-        'content' => LayoutsCast::class,
-    ];
+    protected function casts(): array
+    {
+        return [
+            'content' => LayoutsCast::class,
+        ];
+    }
 }
 
 Layouts::make('Content', 'content')
-    ->addButton(ActionButton::make('New layout')->icon('heroicons.outline.plus')->primary())
+    ->addButton(ActionButton::make('New layout')->icon('plus')->primary())
 ```
 #### Customizing the button label
 
-You can change the default "Add layout" button's text using the [ActionButton](https://moonshine-laravel.com/docs/resource/actionbutton/action_button?change-moonshine-locale=en#basics) component:
+You can change the default "Add layout" button's text using the [ActionButton](https://moonshine-laravel.com/docs/3.x/components/action-button) component:
 
 ```php
 Layouts::make('Content')
-    ->addButton(ActionButton::make('New layout')->icon('heroicons.outline.plus')->primary())
+    ->addButton(ActionButton::make('New layout')->icon('plus')->primary())
 ```
 #### Adding search field
 You can add search input in layout list as follows:

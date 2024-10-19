@@ -15,7 +15,7 @@ final class LayoutsTest extends TestCase
     private function store(TestModel $model, array $data = []): void
     {
         $this->actingAs($this->adminUser, 'moonshine')
-            ->put($this->resource->route('crud.update', $model), $data)
+            ->put($this->resource->getRoute('crud.update', $model), $data)
             ->assertRedirect();
 
         $model->refresh();
@@ -39,7 +39,7 @@ final class LayoutsTest extends TestCase
         ];
 
         $this->actingAs($this->adminUser, 'moonshine')
-            ->post($this->resource->route('crud.store'), $data)
+            ->post($this->resource->getRoute('crud.store'), $data)
             ->assertRedirect();
 
         $model = TestModel::query()->first();

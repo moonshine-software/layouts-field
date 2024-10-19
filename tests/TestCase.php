@@ -5,10 +5,10 @@ namespace MoonShine\Layouts\Tests;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use MoonShine\Layouts\Providers\MoonShineLayoutsServiceProvider;
 use MoonShine\Layouts\Tests\Fixtures\TestResource;
-use MoonShine\Menu\MenuItem;
-use MoonShine\Models\MoonshineUser;
-use MoonShine\Models\MoonshineUserRole;
-use MoonShine\Providers\MoonShineServiceProvider;
+use MoonShine\MenuManager\MenuItem;
+use MoonShine\Laravel\Models\MoonshineUser;
+use MoonShine\Laravel\Models\MoonshineUserRole;
+use MoonShine\Laravel\Providers\MoonShineServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
@@ -35,9 +35,7 @@ abstract class TestCase extends Orchestra
 
         moonshine()->resources([
             $this->resource,
-        ], true)->menu([
-            MenuItem::make('Test', $this->resource),
-        ]);
+        ], true);
     }
 
     protected function defineEnvironment($app): void

@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace MoonShine\Layouts\Tests\Fixtures;
 
-use Illuminate\Database\Eloquent\Model;
-use MoonShine\Decorations\Column;
-use MoonShine\Decorations\Grid;
-use MoonShine\Fields\ID;
-use MoonShine\Fields\Image;
-use MoonShine\Fields\Json;
-use MoonShine\Fields\Text;
+use MoonShine\Laravel\Resources\ModelResource;
 use MoonShine\Layouts\Fields\Layouts;
-use MoonShine\Resources\ModelResource;
+use MoonShine\UI\Components\Layout\Column;
+use MoonShine\UI\Components\Layout\Grid;
+use MoonShine\UI\Fields\ID;
+use MoonShine\UI\Fields\Image;
+use MoonShine\UI\Fields\Json;
+use MoonShine\UI\Fields\Text;
 
 final class TestResource extends ModelResource
 {
     protected string $model = TestModel::class;
 
-    public function fields(): array
+    protected function indexFields(): iterable
     {
         return [
             ID::make(),
@@ -43,8 +42,13 @@ final class TestResource extends ModelResource
         ];
     }
 
-    public function rules(Model $item): array
+    protected function formFields(): iterable
     {
-        return [];
+        return $this->indexFields();
+    }
+
+    protected function detailFields(): iterable
+    {
+        return $this->indexFields();
     }
 }

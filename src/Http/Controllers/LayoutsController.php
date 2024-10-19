@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace MoonShine\Layouts\Http\Controllers;
 
-use MoonShine\Enums\PageType;
-use MoonShine\Enums\ToastType;
-use MoonShine\Fields\Fields;
-use MoonShine\Http\Controllers\MoonShineController;
-use MoonShine\Http\Responses\MoonShineJsonResponse;
+use MoonShine\Laravel\Collections\Fields;
+use MoonShine\Support\Enums\PageType;
+use MoonShine\Support\Enums\ToastType;
+use MoonShine\Laravel\Http\Controllers\MoonShineController;
+use MoonShine\Laravel\Http\Responses\MoonShineJsonResponse;
 use MoonShine\Layouts\Casts\LayoutItem;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Fields\Layout;
 use MoonShine\Layouts\Fields\Layouts;
-use MoonShine\MoonShineRequest;
+use MoonShine\Laravel\MoonShineRequest;
 use Throwable;
 
 final class LayoutsController extends MoonShineController
@@ -68,13 +68,12 @@ final class LayoutsController extends MoonShineController
         $page = $request->getPage();
 
         if(! $resource = $request->getResource()) {
-            $fields = Fields::make(is_null($page->pageType()) ? $page->components() : $page->fields());
+            $fields = Fields::make(is_null($page->getPageType()) ? $page->components() : $page->getFields());
         } else {
-            $fields = match ($page->pageType()) {
+            $fields = match ($page->getPageType()) {
                 PageType::INDEX => $resource->getIndexFields(),
                 PageType::DETAIL => $resource->getDetailFields(),
                 PageType::FORM => $resource->getFormFields(),
-                default => Fields::make($resource->fields())
             };
         }
 

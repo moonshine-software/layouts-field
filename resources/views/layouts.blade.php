@@ -1,18 +1,18 @@
 <div x-data="layouts(
-    `{{ $element->getAddRoute() }}`,
-    `{{ $element->column() }}`
+    `{{ $addRoute }}`,
+    `{{ $column }}`
 )"
-    {{ $element->attributes() }}
+    {{ $attributes }}
     data-top-level="true"
 >
     <div class="_layouts-blocks">
-        @foreach($element->getFilledLayouts() as $layout)
+        @foreach($fields as $layout)
             {!! $layout !!}
         @endforeach
     </div>
 
     <div>
-        {!! $element->getDropdown() !!}
+        {!! $dropdown !!}
     </div>
 
     <br />

@@ -6,7 +6,7 @@ namespace MoonShine\Layouts\Contracts;
 
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\Support\Renderable;
-use MoonShine\Fields\Fields;
+use MoonShine\Laravel\Collections\Fields;
 use Stringable;
 
 interface LayoutContract extends Htmlable, Stringable, Renderable

@@ -6,23 +6,23 @@ namespace MoonShine\Layouts\Fields;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Traits\Conditionable;
-use MoonShine\ActionButtons\ActionButton;
-use MoonShine\Components\FieldsGroup;
-use MoonShine\Components\FlexibleRender;
-use MoonShine\Components\Icon;
-use MoonShine\Decorations\Flex;
-use MoonShine\Fields\Field;
-use MoonShine\Fields\Fields;
-use MoonShine\Fields\Position;
-use MoonShine\Fields\Preview;
+use MoonShine\Contracts\UI\ActionButtonContract;
+use MoonShine\Laravel\Collections\Fields;
 use MoonShine\Layouts\Contracts\LayoutContract;
+use MoonShine\UI\Components\FieldsGroup;
+use MoonShine\UI\Components\FlexibleRender;
+use MoonShine\UI\Components\Icon;
+use MoonShine\UI\Components\Layout\Flex;
+use MoonShine\UI\Fields\Field;
+use MoonShine\UI\Fields\Position;
+use MoonShine\UI\Fields\Preview;
 use Throwable;
 
 final class Layout implements LayoutContract
 {
     use Conditionable;
 
-    private ?ActionButton $removeButton = null;
+    private ?ActionButtonContract $removeButton = null;
 
     private int $key = 0;
 
@@ -117,7 +117,7 @@ final class Layout implements LayoutContract
         return Fields::make([
             Flex::make(array_filter([
                 $this->disableSort ? null : Preview::make(
-                    formatted: static fn () => Icon::make('heroicons.outline.bars-4')
+                    formatted: static fn () => Icon::make('bars-4')
                 )
                         ->withoutWrapper()
                         ->customAttributes(['class' => 'handle', 'style' => 'cursor: move']),
@@ -149,7 +149,7 @@ final class Layout implements LayoutContract
 
         if ($this->isForcePreview) {
             $this->fields->onlyFields()
-                ->map(fn (Field $f): Field => $f->forcePreview());
+                ->map(fn (Field $f): Field => $f->previewMode());
         }
 
 
@@ -168,14 +168,14 @@ final class Layout implements LayoutContract
         return $this->headingAdditionalFields;
     }
 
-    public function removeButton(?ActionButton $button): self
+    public function removeButton(?ActionButtonContract $button): self
     {
         $this->removeButton = $button;
 
         return $this;
     }
 
-    public function getRemoveButton(): ?ActionButton
+    public function getRemoveButton(): ?ActionButtonContract
     {
         return $this->removeButton;
     }

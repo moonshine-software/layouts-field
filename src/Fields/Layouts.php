@@ -7,37 +7,34 @@ namespace MoonShine\Layouts\Fields;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
-use MoonShine\ActionButtons\ActionButton;
-use MoonShine\Components\Dropdown;
-use MoonShine\Components\Link;
-use MoonShine\Contracts\Fields\HasFields;
-use MoonShine\Contracts\Resources\ResourceContract;
-use MoonShine\Fields\Field;
-use MoonShine\Fields\Hidden;
+use MoonShine\AssetManager\Js;
+use MoonShine\Contracts\Core\PageContract;
+use MoonShine\Contracts\Core\ResourceContract;
+use MoonShine\Contracts\UI\ActionButtonContract;
+use MoonShine\Contracts\UI\HasFieldsContract;
 use MoonShine\Layouts\Casts\LayoutItem;
 use MoonShine\Layouts\Casts\LayoutsCast;
 use MoonShine\Layouts\Collections\LayoutCollection;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Contracts\LayoutContract;
-use MoonShine\Pages\Page;
-use MoonShine\Support\Condition;
+use MoonShine\UI\Components\ActionButton;
+use MoonShine\UI\Components\Dropdown;
+use MoonShine\UI\Components\Link;
+use MoonShine\UI\Fields\Field;
+use MoonShine\UI\Fields\Hidden;
 use Throwable;
 
 final class Layouts extends Field
 {
     protected string $view = 'moonshine-layouts-field::layouts';
 
-    protected array $assets = [
-        '/vendor/moonshine-layouts-field/js/layouts.js',
-    ];
-
     private array $layouts = [];
 
-    private ?ActionButton $addButton = null;
+    private ?ActionButtonContract $addButton = null;
 
     private ?Dropdown $dropdown = null;
 
-    private ?ActionButton $removeButton = null;
+    private ?ActionButtonContract $removeButton = null;
 
     private bool $disableRemove = false;
 
@@ -49,14 +46,13 @@ final class Layouts extends Field
 
     private bool $isSearchable = false;
 
-    private ?Page $page = null;
+    private ?PageContract $page = null;
 
-    public function nowOn(?Page $page = null, ?ResourceContract $resource = null): self
+    public function getAssets(): array
     {
-        $this->page = $page;
-        $this->resource = $resource;
-
-        return $this;
+        return [
+            Js::make('/vendor/moonshine-layouts-field/js/layouts.js'),
+        ];
     }
 
     public function addLayout(
@@ -77,7 +73,7 @@ final class Layouts extends Field
         return $this;
     }
 
-    public function addButton(ActionButton $button): self
+    public function addButton(ActionButtonContract $button): self
     {
         $this->addButton = $button;
 
@@ -87,8 +83,8 @@ final class Layouts extends Field
     public function getAddRoute(): string
     {
         return route('moonshine.layouts-field.store', [
-            'resourceUri' => $this->resource ? $this->resource->uriKey() : moonshineRequest()->getResourceUri(),
-            'pageUri' => $this->page ? $this->page->uriKey() : moonshineRequest()->getPageUri(),
+            'resourceUri' => $this->resource ? $this->resource->getUriKey() : moonshineRequest()->getResourceUri(),
+            'pageUri' => $this->page ? $this->page->getUriKey() : moonshineRequest()->getPageUri(),
         ]);
     }
 
@@ -102,7 +98,7 @@ final class Layouts extends Field
         return $this->getLayouts()
             ->map(
                 fn (LayoutContract $layout) => Link::make('#', $layout->title())
-                    ->icon('heroicons.outline.plus')
+                    ->icon('plus')
                     ->customAttributes(['@click.prevent' => "add(`{$layout->name()}`);closeDropdown()"])
             )
             ->toArray();
@@ -118,8 +114,8 @@ final class Layouts extends Field
 
         if (! $values instanceof LayoutItemCollection) {
             $values = (new LayoutsCast())->get(
-                $this->getData(),
-                $this->column(),
+                $this->getData()->getOriginal(),
+                $this->getColumn(),
                 $values,
                 []
             );
@@ -138,7 +134,7 @@ final class Layouts extends Field
                 fn (Layout $l): Layout => $l->disableSort()
             )
                 ->when(
-                    $this->isForcePreview(),
+                    $this->isPreviewMode(),
                     fn (Layout $l): Layout => $l->forcePreview()
                 )
                 ->setKey($data->getKey());
@@ -157,7 +153,7 @@ final class Layouts extends Field
                         ->setValue($data->getName())
                 )
                 ->prepareAttributes()
-                ->prepareReindex($this);
+                ->prepareReindexNames($this);
 
             $fields = $this->fillClonedRecursively(
                 $layout->getHeadingAdditionalFields(),
@@ -176,7 +172,7 @@ final class Layouts extends Field
     private function fillClonedRecursively(Collection $collection, mixed $data): Collection
     {
         return $collection->map(function (mixed $item) use ($data) {
-            if ($item instanceof HasFields) {
+            if ($item instanceof HasFieldsContract) {
                 $item = (clone $item)->fields(
                     $this->fillClonedRecursively($item->getFields(), $data)->toArray()
                 );
@@ -190,7 +186,7 @@ final class Layouts extends Field
         });
     }
 
-    public function getAddButton(): ?ActionButton
+    public function getAddButton(): ?ActionButtonContract
     {
         if ($this->disableAdd) {
             return null;
@@ -206,7 +202,7 @@ final class Layouts extends Field
 
     public function searchable(Closure|bool|null $condition = null): static
     {
-        $this->isSearchable = Condition::boolean($condition, true);
+        $this->isSearchable = value($condition) ?? true;
 
         return $this;
     }
@@ -247,11 +243,11 @@ final class Layouts extends Field
         }
 
         return $this->dropdown
-            ->toggler(fn (): ?ActionButton => $this->getAddButton())
+            ->toggler(fn (): ?ActionButtonContract => $this->getAddButton())
             ->items($this->getLayoutButtons());
     }
 
-    public function getRemoveButton(): ?ActionButton
+    public function getRemoveButton(): ?ActionButtonContract
     {
         if ($this->disableRemove) {
             return null;
@@ -259,8 +255,8 @@ final class Layouts extends Field
 
         if (is_null($this->removeButton)) {
             $this->removeButton = ActionButton::make('')
-                ->icon('heroicons.outline.trash')
-                ->customAttributes(['style' => 'margin-left: auto'])
+                ->icon('trash')
+                ->style('margin-left: auto')
                 ->error();
         }
 
@@ -281,14 +277,14 @@ final class Layouts extends Field
             ->disableRemove()
             ->disableAdd()
             ->disableSort()
-            ->forcePreview()
+            ->previewMode()
             ->render();
     }
 
     protected function resolveOnApply(): ?Closure
     {
         return function ($item) {
-            $requestValues = array_filter($this->requestValue() ?: []);
+            $requestValues = array_filter($this->getRequestValue() ?: []);
 
             $data = collect($requestValues)->map(function (array $value, $index): array {
                 $layout = $this->getLayouts()->findByName($value['_layout']);
@@ -303,19 +299,19 @@ final class Layouts extends Field
                 $layout->fields()->onlyFields()->each(
                     function (Field $field) use ($value, $index, &$applyValues): void {
                         $field->appendRequestKeyPrefix(
-                            "{$this->column()}.$index",
-                            $this->requestKeyPrefix()
+                            "{$this->getColumn()}.$index",
+                            $this->getRequestKeyPrefix()
                         );
 
                         $apply = $field->apply(
-                            fn ($data): mixed => data_set($data, $field->column(), $value[$field->column()] ?? ''),
+                            fn ($data): mixed => data_set($data, $field->getColumn(), $value[$field->getColumn()] ?? ''),
                             $value
                         );
 
                         data_set(
                             $applyValues,
-                            $field->column(),
-                            data_get($apply, $field->column())
+                            $field->getColumn(),
+                            data_get($apply, $field->getColumn())
                         );
                     }
                 );
@@ -327,7 +323,7 @@ final class Layouts extends Field
                 ];
             })->filter();
 
-            data_set($item, $this->column(), $data);
+            data_set($item, $this->getColumn(), $data);
 
             return $item;
         };
@@ -368,7 +364,7 @@ final class Layouts extends Field
      */
     protected function resolveCallback(mixed $data, Closure $callback, bool $fill = false): mixed
     {
-        $requestValues = array_filter($this->requestValue() ?: []);
+        $requestValues = array_filter($this->getRequestValue() ?: []);
 
         foreach ($requestValues as $index => $value) {
             $layout = $this->getLayouts()->findByName($value['_layout']);
@@ -381,8 +377,8 @@ final class Layouts extends Field
                 ->onlyFields()
                 ->each(function (Field $field) use ($data, $index, $value, $callback, $fill): void {
                     $field->appendRequestKeyPrefix(
-                        "{$this->column()}.$index",
-                        $this->requestKeyPrefix()
+                        "{$this->getColumn()}.$index",
+                        $this->getRequestKeyPrefix()
                     );
 
                     $field->when($fill, fn (Field $f): Field => $f->resolveFill($data));
@@ -392,5 +388,14 @@ final class Layouts extends Field
         }
 
         return $data;
+    }
+
+    protected function viewData(): array
+    {
+        return [
+            'addRoute' => $this->getAddRoute(),
+            'fields' => $this->getFilledLayouts(),
+            'dropdown' => $this->getDropdown(),
+        ];
     }
 }

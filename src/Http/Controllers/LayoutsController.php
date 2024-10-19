@@ -25,7 +25,7 @@ final class LayoutsController extends MoonShineController
     {
         $field = $this->getField($request);
 
-        if(is_null($field)) {
+        if (is_null($field)) {
             return MoonShineJsonResponse::make()
                 ->toast('Field not found', ToastType::ERROR);
         }
@@ -43,7 +43,7 @@ final class LayoutsController extends MoonShineController
             ->findByName($request->get('name'))
             ?->removeButton($field->getRemoveButton());
 
-        if(is_null($layout)) {
+        if (is_null($layout)) {
             return MoonShineJsonResponse::make()
                 ->toast('Layout not found', ToastType::ERROR);
         }
@@ -52,7 +52,7 @@ final class LayoutsController extends MoonShineController
             ->collect('counts')
             ->get($layout->name(), 0);
 
-        if($layout->hasLimit() && $layout->limit() <= $layoutCount) {
+        if ($layout->hasLimit() && $layout->limit() <= $layoutCount) {
             return MoonShineJsonResponse::make()
                 ->toast("Limit count {$layout->limit()}", ToastType::ERROR);
         }
@@ -67,7 +67,7 @@ final class LayoutsController extends MoonShineController
     {
         $page = $request->getPage();
 
-        if(! $resource = $request->getResource()) {
+        if (! $resource = $request->getResource()) {
             $fields = Fields::make(is_null($page->pageType()) ? $page->components() : $page->fields());
         } else {
             $fields = match ($page->pageType()) {

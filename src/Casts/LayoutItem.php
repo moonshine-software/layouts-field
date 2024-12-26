@@ -9,9 +9,9 @@ use JsonSerializable;
 final class LayoutItem implements JsonSerializable
 {
     public function __construct(
-        private string $name,
-        private int $key = 0,
-        private array $values = []
+        private readonly string $name,
+        private readonly int $key = 0,
+        private readonly array $values = []
     ) {
     }
 

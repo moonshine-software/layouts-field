@@ -7,3 +7,4 @@ phpunit.xml.dist
 .php-cs-fixer.cache
 app
 reports
+.phpunit.cache

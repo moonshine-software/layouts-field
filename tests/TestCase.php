@@ -28,12 +28,12 @@ abstract class TestCase extends Orchestra
             ->create($this->superAdminAttributes())
             ->load('moonshineUserRole');
 
-        $this->resource = new TestResource();
+        $this->resource = app(TestResource::class);
 
         $this->loadMigrationsFrom(__DIR__ . '/Fixtures/Migrations');
 
         moonshine()->resources([
-            $this->resource,
+            TestResource::class,
         ], true);
     }
 
@@ -41,6 +41,10 @@ abstract class TestCase extends Orchestra
     {
         $app['config']->set('app.debug', 'true');
         $app['config']->set('moonshine.cache', 'array');
+        $app['config']->set('moonshine.use_migrations', true);
+        $app['config']->set('moonshine.use_notifications', true);
+        $app['config']->set('moonshine.use_database_notifications', false);
+        $app['config']->set('moonshine.auth.enabled', true);
     }
 
     protected function getPackageProviders($app): array

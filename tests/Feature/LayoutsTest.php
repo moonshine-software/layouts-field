@@ -15,7 +15,7 @@ final class LayoutsTest extends TestCase
     private function store(TestModel $model, array $data = []): void
     {
         $this->actingAs($this->adminUser, 'moonshine')
-            ->put($this->resource->getRoute('crud.update', $model), $data)
+            ->put($this->resource->getRoute('crud.update', $model->getKey()), $data)
             ->assertRedirect();
 
         $model->refresh();

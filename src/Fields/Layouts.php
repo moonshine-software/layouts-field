@@ -76,7 +76,7 @@ final class Layouts extends Field
             $headingAdditionalFields,
         );
 
-        if($validation !== []) {
+        if ($validation !== []) {
             $this->rules[$name] = $validation;
         }
 
@@ -357,14 +357,14 @@ final class Layouts extends Field
      */
     protected function resolveBeforeApply(mixed $data): mixed
     {
-        if($this->rules !== []) {
+        if ($this->rules !== []) {
             $value = $this->getRequestValue();
 
-            if(!is_array($value)) {
+            if (! is_array($value)) {
                 $value = [];
             }
 
-            $value = Collection::make($value)->mapToGroups(fn($v) => [$v['_layout'] => $v]);
+            $value = Collection::make($value)->mapToGroups(fn ($v) => [$v['_layout'] => $v]);
 
             $rules = [];
             $attributes = [];
@@ -372,7 +372,7 @@ final class Layouts extends Field
             foreach ($this->rules as $layoutName => $rule) {
                 $layout = $this->getLayouts()->findByName($layoutName);
 
-                if(\is_null($layout)) {
+                if (\is_null($layout)) {
                     continue;
                 }
 
@@ -384,7 +384,7 @@ final class Layouts extends Field
                     $attributes["$layoutName.*.$fieldName"] = "{$layout->title()}(:position) {$column}";
                 }
             }
-            
+
             Validator::validate($value->toArray(), $rules, attributes: $attributes);
         }
 

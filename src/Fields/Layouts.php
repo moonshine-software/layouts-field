@@ -8,7 +8,6 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use MoonShine\AssetManager\Js;
 use MoonShine\Contracts\Core\HasComponentsContract;
 use MoonShine\Contracts\Core\PageContract;
@@ -365,9 +364,7 @@ final class Layouts extends Field
                 $value = [];
             }
 
-            $value = Collection::make($value)->mapToGroups(function ($v) {
-              return [$v['_layout'] => $v];
-            });
+            $value = Collection::make($value)->mapToGroups(fn($v) => [$v['_layout'] => $v]);
 
             $rules = [];
             $attributes = [];

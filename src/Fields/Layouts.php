@@ -384,11 +384,34 @@ final class Layouts extends Field
                     $column = $field?->getLabel() ?? $fieldName;
 
                     $rules["$layoutName.*.$fieldName"] = $args;
-                    $attributes["$layoutName.*.$fieldName"] = "{$layout->title()}(:position) {$column}";
+                    $attributes["$layoutName.*.$fieldName"] = $column;
                 }
             }
-            
-            Validator::validate($value->toArray(), $rules, attributes: $attributes);
+
+            $validator = Validator::make($value->toArray(), $rules, attributes: $attributes);
+
+            if($validator->fails()) {
+                $errors = [];
+
+                $before = array_key_first($validator->errors()->toArray());
+                $beforeKeys = explode('.', $before);
+                $index = 1;
+
+                foreach ($validator->errors()->toArray() as $key => $error) {
+                    $keys = explode('.', $key);
+
+                    if($beforeKeys[0] !== $keys[0] || $beforeKeys[1] !== $keys[1]) {
+                        $index++;
+                    }
+
+                    $column = $keys[2] ?? '';
+
+                    $errors["data.$index.$column"] = $error;
+                    $beforeKeys = $keys;
+                }
+
+                throw ValidationException::withMessages($errors)->errorBag($this->getFormName());
+            }
         }
 
         return $this->resolveCallback($data, function (Field $field, mixed $value): void {

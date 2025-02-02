@@ -388,7 +388,7 @@ final class Layouts extends Field
 
             $validator = Validator::make($value->toArray(), $rules, attributes: $attributes);
 
-            if($validator->fails()) {
+            if ($validator->fails()) {
                 $errors = [];
 
                 $before = array_key_first($validator->errors()->toArray());
@@ -398,7 +398,7 @@ final class Layouts extends Field
                 foreach ($validator->errors()->toArray() as $key => $error) {
                     $keys = explode('.', $key);
 
-                    if($beforeKeys[0] !== $keys[0] || $beforeKeys[1] !== $keys[1]) {
+                    if ($beforeKeys[0] !== $keys[0] || $beforeKeys[1] !== $keys[1]) {
                         $index++;
                     }
 

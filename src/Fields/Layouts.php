@@ -120,10 +120,10 @@ final class Layouts extends Field
     protected function resolveOldValue(mixed $old): mixed
     {
         if (is_array($old) && $old !== []) {
-            return collect($old)->map(function (array $value) {
+            return collect($old)->map(function (array $value): ?array {
                 $layout = $this->getLayouts()->findByName($value['_layout']);
 
-                if($layout === null) {
+                if(!$layout instanceof LayoutContract) {
                     return null;
                 }
 

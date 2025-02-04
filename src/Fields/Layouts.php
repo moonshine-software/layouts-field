@@ -425,7 +425,7 @@ final class Layouts extends Field
 
                     $column = $keys[2] ?? '';
 
-                    $errors["data.$index.$column"] = $error;
+                    $errors["{$this->getColumn()}.$index.$column"] = $error;
                     $beforeKeys = $keys;
                 }
 

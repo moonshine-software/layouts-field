@@ -423,9 +423,9 @@ final class Layouts extends Field
                         $index++;
                     }
 
-                    $column = $keys[2] ?? '';
+                    $after = collect($keys)->except(0, 1)->implode('.');
 
-                    $errors["{$this->getColumn()}.$index.$column"] = $error;
+                    $errors["{$this->getColumn()}.$index.$after"] = $error;
                     $beforeKeys = $keys;
                 }
 

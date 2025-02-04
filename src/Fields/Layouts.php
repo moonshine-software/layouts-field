@@ -109,7 +109,7 @@ final class Layouts extends Field
         return $this
             ->getLayouts()
             ->map(
-                fn(LayoutContract $layout)
+                fn (LayoutContract $layout)
                     => Link::make('#', $layout->title())
                     ->icon('plus')
                     ->customAttributes(['@click.prevent' => "add(`{$layout->name()}`);closeDropdown()"]),
@@ -120,10 +120,10 @@ final class Layouts extends Field
     protected function resolveOldValue(mixed $old): mixed
     {
         if (is_array($old) && $old !== []) {
-            return collect($old)->map(function (array $value) {
+            return collect($old)->map(function (array $value): ?array {
                 $layout = $this->getLayouts()->findByName($value['_layout']);
 
-                if($layout === null) {
+                if (! $layout instanceof LayoutContract) {
                     return null;
                 }
 
@@ -163,11 +163,11 @@ final class Layouts extends Field
             $layout = clone $layout
                 ->when(
                     $this->disableSort,
-                    fn(Layout $l): Layout => $l->disableSort(),
+                    fn (Layout $l): Layout => $l->disableSort(),
                 )
                 ->when(
                     $this->isPreviewMode(),
-                    fn(Layout $l): Layout => $l->forcePreview(),
+                    fn (Layout $l): Layout => $l->forcePreview(),
                 )
                 ->setKey($data->getKey());
 
@@ -281,7 +281,7 @@ final class Layouts extends Field
         }
 
         return $this->dropdown
-            ->toggler(fn(): ?ActionButtonContract => $this->getAddButton())
+            ->toggler(fn (): ?ActionButtonContract => $this->getAddButton())
             ->items($this->getLayoutButtons());
     }
 
@@ -299,7 +299,7 @@ final class Layouts extends Field
         }
 
         return $this->removeButton
-            ->onClick(fn(): string => 'remove', 'stop');
+            ->onClick(fn (): string => 'remove', 'stop');
     }
 
     public function disableSort(): self
@@ -349,7 +349,7 @@ final class Layouts extends Field
                         );
 
                         $apply = $field->apply(
-                            fn($data): mixed => data_set($data, $field->getColumn(), $value[$field->getColumn()] ?? ''),
+                            fn ($data): mixed => data_set($data, $field->getColumn(), $value[$field->getColumn()] ?? ''),
                             $value,
                         );
 
@@ -386,7 +386,7 @@ final class Layouts extends Field
                 $value = [];
             }
 
-            $value = Collection::make($value)->mapToGroups(fn($v) => [$v['_layout'] => $v]);
+            $value = Collection::make($value)->mapToGroups(fn ($v) => [$v['_layout'] => $v]);
 
             $rules = [];
             $attributes = [];
@@ -481,7 +481,7 @@ final class Layouts extends Field
                         $this->getRequestKeyPrefix(),
                     );
 
-                    $field->when($fill, fn(Field $f): Field => $f->resolveFill($data));
+                    $field->when($fill, fn (Field $f): Field => $f->resolveFill($data));
 
                     $callback($field, $value);
                 });

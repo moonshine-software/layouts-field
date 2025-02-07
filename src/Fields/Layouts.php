@@ -6,6 +6,7 @@ namespace MoonShine\Layouts\Fields;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -54,6 +55,10 @@ final class Layouts extends Field
 
     private array $rules = [];
 
+    private array $rulesAttributes = [];
+
+    private array $rulesMessages = [];
+
     protected function assets(): array
     {
         return [
@@ -68,6 +73,8 @@ final class Layouts extends Field
         ?int $limit = null,
         ?iterable $headingAdditionalFields = null,
         array $validation = [],
+        array $attributes = [],
+        array $messages = [],
     ): self {
         $this->layouts[] = new Layout(
             $title,
@@ -79,6 +86,14 @@ final class Layouts extends Field
 
         if ($validation !== []) {
             $this->rules[$name] = $validation;
+        }
+
+        if ($attributes !== []) {
+            $this->rulesAttributes[$name] = $attributes;
+        }
+
+        if ($messages !== []) {
+            $this->rulesMessages[$name] = $messages;
         }
 
         return $this;
@@ -120,19 +135,25 @@ final class Layouts extends Field
     protected function resolveOldValue(mixed $old): mixed
     {
         if (is_array($old) && $old !== []) {
-            return collect($old)->map(function (array $value): ?array {
-                $layout = $this->getLayouts()->findByName($value['_layout']);
+            return collect($old)->map(function (array $values): ?array {
+                $layout = $this->getLayouts()->findByName($values['_layout']);
 
                 if (! $layout instanceof LayoutContract) {
                     return null;
                 }
 
-                unset($value['_layout']);
+                unset($values['_layout']);
+
+                foreach ($layout->fields()->onlyFields() as $field) {
+                    if($field instanceof HasFieldsContract) {
+                        unset($values[$field->getColumn()]);
+                    }
+                }
 
                 return [
                     'name' => $layout->name(),
                     'key' => $layout->key(),
-                    'values' => $value,
+                    'values' => $values,
                 ];
             })->filter();
         }
@@ -319,9 +340,11 @@ final class Layouts extends Field
             ->render();
     }
 
-    public function validation(array $rules): self
+    public function validation(array $rules, array $attributes = [], array $messages = []): self
     {
         $this->rules = array_merge_recursive($this->rules, $rules);
+        $this->rulesAttributes = array_merge_recursive($this->rulesAttributes, $attributes);
+        $this->rulesMessages = array_merge_recursive($this->rulesMessages, $messages);
 
         return $this;
     }
@@ -390,6 +413,13 @@ final class Layouts extends Field
 
             $rules = [];
             $attributes = [];
+            $messages = [];
+
+            foreach ($this->rulesMessages as $layoutName => $allMessages) {
+                foreach ($allMessages as $key => $message) {
+                    $messages["$layoutName.*.$key"] = $message;
+                }
+            }
 
             foreach ($this->rules as $layoutName => $rule) {
                 $layout = $this->getLayouts()->findByName($layoutName);
@@ -399,15 +429,16 @@ final class Layouts extends Field
                 }
 
                 foreach ($rule as $fieldName => $args) {
-                    $field = $layout->fields()->onlyFields()->findByColumn($fieldName);
-                    $column = $field?->getLabel() ?? $fieldName;
-
                     $rules["$layoutName.*.$fieldName"] = $args;
-                    $attributes["$layoutName.*.$fieldName"] = $column;
+
+                    if(isset($this->rulesAttributes[$layoutName][$fieldName])) {
+                        $attr = $this->rulesAttributes[$layoutName][$fieldName];
+                        $attributes["$layoutName.*.$fieldName"] = is_array($attr) ? Arr::last($attr) : $attr;
+                    }
                 }
             }
 
-            $validator = Validator::make($value->toArray(), $rules, attributes: $attributes);
+            $validator = Validator::make($value->toArray(), $rules, messages: $messages, attributes: $attributes);
 
             if ($validator->fails()) {
                 $errors = [];

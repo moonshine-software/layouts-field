@@ -101,7 +101,7 @@ Layouts::make('Content')
 use MoonShine\UI\Fields\Email;Layouts::make('Content')
   ->addLayout('Info section', 'info', [
     Email::make('Email')
-  ], validation: ['email' => ['required', 'email']])
+  ], validation: ['email' => ['required', 'email']], attributes: ['email' => 'E-mail'])
 ```
 
 ```php
@@ -119,9 +119,9 @@ use MoonShine\UI\Fields\Email;Layouts::make('Content')
 use MoonShine\UI\Fields\Email;Layouts::make('Content')
   ->addLayout('Info section', 'info', [
     Email::make('Email')
-  ], validation: ['email' => ['email']]),
+  ], validation: ['email' => ['email']], attributes: ['email' => 'E-mail']),
   ->addLayout('Additionally section', 'additionally', [
     Text::make('Title')
   ])
-  ->validation(['info' => ['email' => ['required']], 'additionally' => ['title' => 'required']])
+  ->validation(['info' => ['email' => ['required']], 'additionally' => ['title' => 'required']], attributes: ['additionally' => ['title' => 'Заголовок']])
 ```

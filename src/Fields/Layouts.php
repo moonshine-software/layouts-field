@@ -145,7 +145,7 @@ final class Layouts extends Field
                 unset($values['_layout']);
 
                 foreach ($layout->fields()->onlyFields() as $field) {
-                    if($field instanceof HasFieldsContract) {
+                    if ($field instanceof HasFieldsContract) {
                         unset($values[$field->getColumn()]);
                     }
                 }
@@ -431,7 +431,7 @@ final class Layouts extends Field
                 foreach ($rule as $fieldName => $args) {
                     $rules["$layoutName.*.$fieldName"] = $args;
 
-                    if(isset($this->rulesAttributes[$layoutName][$fieldName])) {
+                    if (isset($this->rulesAttributes[$layoutName][$fieldName])) {
                         $attr = $this->rulesAttributes[$layoutName][$fieldName];
                         $attributes["$layoutName.*.$fieldName"] = is_array($attr) ? Arr::last($attr) : $attr;
                     }

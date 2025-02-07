@@ -22,7 +22,7 @@ class LayoutsCast implements CastsAttributes
             return $data;
         }
 
-        return is_array($data) ? $this->_map($data) : null;
+        return is_array($data) ? $this->map($data) : null;
     }
 
     public function set(Model $model, string $key, mixed $value, array $attributes): array
@@ -30,7 +30,7 @@ class LayoutsCast implements CastsAttributes
         return [$key => Json::encode($value)];
     }
 
-    private function _map(mixed $value): LayoutItemCollection
+    public function map(mixed $value): LayoutItemCollection
     {
         $values = [];
 

@@ -36,19 +36,21 @@ Layouts::make('Content')
      ->addLayout('Banner section', 'banner', [
         Text::make('Title'),
         Image::make('Banner image', 'thumbnail'),
-    ]),
+    ], validation: ['title' => 'required']),
 ```
 #### Adding layouts
 
 Layouts can be added using the following method on your Layouts fields:
 
 ```php
-addLayout(string $title, string $name, iterable $fields, ?int $limit = null)
+addLayout(string $title, string $name, iterable $fields, ?int $limit = null, iterable $headingAdditionalFields = null, array $validation = [])
 ```
 1. The `$title` parameter allows you to specify the name of a group of fields that will be displayed in the form.
 2. The `$name` parameter is used to store the chosen layout in the field's value.
 3. The `$fields` parameter accepts an array of fields that will be used to populate a group of fields in the form.
 4. `$limit` allows you to set the max number of groups in the field.
+5. `$headingAdditionalFields` components in header
+6. `$validation` validation rules.
 
 #### Adding cast
 
@@ -90,4 +92,36 @@ Layouts::make('Content')
     ...
   ])
   ->searchable()
+```
+
+
+#### Validation
+
+```php
+use MoonShine\UI\Fields\Email;Layouts::make('Content')
+  ->addLayout('Info section', 'info', [
+    Email::make('Email')
+  ], validation: ['email' => ['required', 'email']], attributes: ['email' => 'E-mail'])
+```
+
+```php
+use MoonShine\UI\Fields\Email;Layouts::make('Content')
+  ->addLayout('Info section', 'info', [
+    Email::make('Email')
+  ]),
+  ->addLayout('Additionally section', 'additionally', [
+    Text::make('Title')
+  ])
+  ->validation(['info' => ['email' => 'required'], 'additionally' => ['title' => 'required']])
+```
+
+```php
+use MoonShine\UI\Fields\Email;Layouts::make('Content')
+  ->addLayout('Info section', 'info', [
+    Email::make('Email')
+  ], validation: ['email' => ['email']], attributes: ['email' => 'E-mail']),
+  ->addLayout('Additionally section', 'additionally', [
+    Text::make('Title')
+  ])
+  ->validation(['info' => ['email' => ['required']], 'additionally' => ['title' => 'required']], attributes: ['additionally' => ['title' => 'Заголовок']])
 ```

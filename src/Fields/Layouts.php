@@ -6,7 +6,10 @@ namespace MoonShine\Layouts\Fields;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use MoonShine\AssetManager\Js;
 use MoonShine\Contracts\Core\HasComponentsContract;
 use MoonShine\Contracts\Core\PageContract;
@@ -50,6 +53,12 @@ final class Layouts extends Field
 
     private ?PageContract $page = null;
 
+    private array $rules = [];
+
+    private array $rulesAttributes = [];
+
+    private array $rulesMessages = [];
+
     protected function assets(): array
     {
         return [
@@ -63,14 +72,29 @@ final class Layouts extends Field
         iterable $fields,
         ?int $limit = null,
         ?iterable $headingAdditionalFields = null,
+        array $validation = [],
+        array $attributes = [],
+        array $messages = [],
     ): self {
         $this->layouts[] = new Layout(
             $title,
             $name,
             $fields,
             $limit,
-            $headingAdditionalFields
+            $headingAdditionalFields,
         );
+
+        if ($validation !== []) {
+            $this->rules[$name] = $validation;
+        }
+
+        if ($attributes !== []) {
+            $this->rulesAttributes[$name] = $attributes;
+        }
+
+        if ($messages !== []) {
+            $this->rulesMessages[$name] = $messages;
+        }
 
         return $this;
     }
@@ -97,13 +121,44 @@ final class Layouts extends Field
 
     public function getLayoutButtons(): array
     {
-        return $this->getLayouts()
+        return $this
+            ->getLayouts()
             ->map(
-                fn (LayoutContract $layout) => Link::make('#', $layout->title())
+                fn (LayoutContract $layout)
+                    => Link::make('#', $layout->title())
                     ->icon('plus')
-                    ->customAttributes(['@click.prevent' => "add(`{$layout->name()}`);closeDropdown()"])
+                    ->customAttributes(['@click.prevent' => "add(`{$layout->name()}`);closeDropdown()"]),
             )
             ->toArray();
+    }
+
+    protected function resolveOldValue(mixed $old): mixed
+    {
+        if (is_array($old) && $old !== []) {
+            return collect($old)->map(function (array $values): ?array {
+                $layout = $this->getLayouts()->findByName($values['_layout']);
+
+                if (! $layout instanceof LayoutContract) {
+                    return null;
+                }
+
+                unset($values['_layout']);
+
+                foreach ($layout->fields()->onlyFields() as $field) {
+                    if ($field instanceof HasFieldsContract) {
+                        unset($values[$field->getColumn()]);
+                    }
+                }
+
+                return [
+                    'name' => $layout->name(),
+                    'key' => $layout->key(),
+                    'values' => $values,
+                ];
+            })->filter();
+        }
+
+        return parent::resolveOldValue($old);
     }
 
     /**
@@ -112,15 +167,10 @@ final class Layouts extends Field
     public function getFilledLayouts(): LayoutCollection
     {
         $layouts = $this->getLayouts();
-        $values = $this->toValue();
+        $values = $this->getValue();
 
         if (! $values instanceof LayoutItemCollection) {
-            $values = (new LayoutsCast())->get(
-                $this->getData()->getOriginal(),
-                $this->getColumn(),
-                $values,
-                []
-            );
+            $values = (new LayoutsCast())->map($values);
         }
 
         $filled = $values ? $values->map(function (LayoutItem $data) use ($layouts) {
@@ -131,19 +181,20 @@ final class Layouts extends Field
                 return null;
             }
 
-            $layout = clone $layout->when(
-                $this->disableSort,
-                fn (Layout $l): Layout => $l->disableSort()
-            )
+            $layout = clone $layout
+                ->when(
+                    $this->disableSort,
+                    fn (Layout $l): Layout => $l->disableSort(),
+                )
                 ->when(
                     $this->isPreviewMode(),
-                    fn (Layout $l): Layout => $l->forcePreview()
+                    fn (Layout $l): Layout => $l->forcePreview(),
                 )
                 ->setKey($data->getKey());
 
             $fields = $this->fillClonedRecursively(
                 $layout->fields(),
-                $data->getValues()
+                $data->getValues(),
             );
 
             $layout
@@ -152,14 +203,14 @@ final class Layouts extends Field
                 ->prepend(
                     Hidden::make('_layout')
                         ->customAttributes(['class' => '_layout-value'])
-                        ->setValue($data->getName())
+                        ->setValue($data->getName()),
                 )
                 ->prepareAttributes()
                 ->prepareReindexNames($this);
 
             $fields = $this->fillClonedRecursively(
                 $layout->getHeadingAdditionalFields(),
-                $data->getValues()
+                $data->getValues(),
             );
 
             $layout
@@ -176,13 +227,13 @@ final class Layouts extends Field
         return $collection->map(function (mixed $item) use ($data) {
             if ($item instanceof HasComponentsContract) {
                 $item = (clone $item)->setComponents(
-                    $this->fillClonedRecursively($item->getComponents(), $data)->toArray()
+                    $this->fillClonedRecursively($item->getComponents(), $data)->toArray(),
                 );
             }
 
             if ($item instanceof HasFieldsContract) {
                 $item = (clone $item)->fields(
-                    $this->fillClonedRecursively($item->getFields(), $data)->toArray()
+                    $this->fillClonedRecursively($item->getFields(), $data)->toArray(),
                 );
             }
 
@@ -289,6 +340,15 @@ final class Layouts extends Field
             ->render();
     }
 
+    public function validation(array $rules, array $attributes = [], array $messages = []): self
+    {
+        $this->rules = array_merge_recursive($this->rules, $rules);
+        $this->rulesAttributes = array_merge_recursive($this->rulesAttributes, $attributes);
+        $this->rulesMessages = array_merge_recursive($this->rulesMessages, $messages);
+
+        return $this;
+    }
+
     protected function resolveOnApply(): ?Closure
     {
         return function ($item) {
@@ -308,20 +368,20 @@ final class Layouts extends Field
                     function (Field $field) use ($value, $index, &$applyValues): void {
                         $field->appendRequestKeyPrefix(
                             "{$this->getColumn()}.$index",
-                            $this->getRequestKeyPrefix()
+                            $this->getRequestKeyPrefix(),
                         );
 
                         $apply = $field->apply(
                             fn ($data): mixed => data_set($data, $field->getColumn(), $value[$field->getColumn()] ?? ''),
-                            $value
+                            $value,
                         );
 
                         data_set(
                             $applyValues,
                             $field->getColumn(),
-                            data_get($apply, $field->getColumn())
+                            data_get($apply, $field->getColumn()),
                         );
-                    }
+                    },
                 );
 
                 return [
@@ -342,6 +402,68 @@ final class Layouts extends Field
      */
     protected function resolveBeforeApply(mixed $data): mixed
     {
+        if ($this->rules !== []) {
+            $value = $this->getRequestValue();
+
+            if (! is_array($value)) {
+                $value = [];
+            }
+
+            $value = Collection::make($value)->mapToGroups(fn ($v) => [$v['_layout'] => $v]);
+
+            $rules = [];
+            $attributes = [];
+            $messages = [];
+
+            foreach ($this->rulesMessages as $layoutName => $allMessages) {
+                foreach ($allMessages as $key => $message) {
+                    $messages["$layoutName.*.$key"] = $message;
+                }
+            }
+
+            foreach ($this->rules as $layoutName => $rule) {
+                $layout = $this->getLayouts()->findByName($layoutName);
+
+                if (\is_null($layout)) {
+                    continue;
+                }
+
+                foreach ($rule as $fieldName => $args) {
+                    $rules["$layoutName.*.$fieldName"] = $args;
+
+                    if (isset($this->rulesAttributes[$layoutName][$fieldName])) {
+                        $attr = $this->rulesAttributes[$layoutName][$fieldName];
+                        $attributes["$layoutName.*.$fieldName"] = is_array($attr) ? Arr::last($attr) : $attr;
+                    }
+                }
+            }
+
+            $validator = Validator::make($value->toArray(), $rules, messages: $messages, attributes: $attributes);
+
+            if ($validator->fails()) {
+                $errors = [];
+
+                $before = array_key_first($validator->errors()->toArray());
+                $beforeKeys = explode('.', $before);
+                $index = 1;
+
+                foreach ($validator->errors()->toArray() as $key => $error) {
+                    $keys = explode('.', $key);
+
+                    if ($beforeKeys[0] !== $keys[0] || $beforeKeys[1] !== $keys[1]) {
+                        $index++;
+                    }
+
+                    $after = collect($keys)->except(0, 1)->implode('.');
+
+                    $errors["{$this->getColumn()}.$index.$after"] = $error;
+                    $beforeKeys = $keys;
+                }
+
+                throw ValidationException::withMessages($errors)->errorBag($this->getFormName());
+            }
+        }
+
         return $this->resolveCallback($data, function (Field $field, mixed $value): void {
             $field->beforeApply($value);
         });
@@ -381,12 +503,13 @@ final class Layouts extends Field
                 continue;
             }
 
-            $layout->fields()
+            $layout
+                ->fields()
                 ->onlyFields()
                 ->each(function (Field $field) use ($data, $index, $value, $callback, $fill): void {
                     $field->appendRequestKeyPrefix(
                         "{$this->getColumn()}.$index",
-                        $this->getRequestKeyPrefix()
+                        $this->getRequestKeyPrefix(),
                     );
 
                     $field->when($fill, fn (Field $f): Field => $f->resolveFill($data));

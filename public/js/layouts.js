@@ -40,7 +40,7 @@ document.addEventListener('alpine:init', () => {
             }, {}, {
                 afterResponse: function(data) {
                     const tempContainer = document.createElement('div');
-                    tempContainer.innerHTML = data.htmlData[0].html ?? '';
+                    tempContainer.innerHTML = data.html ?? data.htmlData[0].html ?? '';
 
                     while (tempContainer.firstChild) {
                         t.blocksContainer.appendChild(tempContainer.firstChild);

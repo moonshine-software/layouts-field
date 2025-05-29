@@ -68,12 +68,13 @@ final class LayoutsController extends MoonShineController
         $page = $request->getPage();
 
         if (! $resource = $request->getResource()) {
-            $fields = Fields::make(is_null($page->getPageType()) ? $page->components() : $page->getFields());
+            $fields = Fields::make(is_null($page->getPageType()) ? $page->getComponents() : $page->getFields());
         } else {
             $fields = match ($page->getPageType()) {
                 PageType::INDEX => $resource->getIndexFields(),
                 PageType::DETAIL => $resource->getDetailFields(),
                 PageType::FORM => $resource->getFormFields(),
+                default => $page->getComponents(),
             };
         }
 

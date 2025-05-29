@@ -32,6 +32,7 @@ document.addEventListener('alpine:init', () => {
                 layoutsCount[l.value] = layoutsCount[l.value] ? layoutsCount[l.value]+1 : 1
             })
 
+
             MoonShine.request(t, t.url, 'post', {
                 field: t.column,
                 name: name,
@@ -39,7 +40,7 @@ document.addEventListener('alpine:init', () => {
             }, {}, {
                 afterResponse: function(data) {
                     const tempContainer = document.createElement('div');
-                    tempContainer.innerHTML = data.html ?? '';
+                    tempContainer.innerHTML = data.htmlData[0].html ?? '';
 
                     while (tempContainer.firstChild) {
                         t.blocksContainer.appendChild(tempContainer.firstChild);

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace MoonShine\Layouts\Http\Controllers;
 
+use MoonShine\Contracts\Core\DependencyInjection\CrudRequestContract;
+use MoonShine\Crud\JsonResponse;
 use MoonShine\Laravel\Collections\Fields;
 use MoonShine\Laravel\Http\Controllers\MoonShineController;
-use MoonShine\Laravel\Http\Responses\MoonShineJsonResponse;
-use MoonShine\Laravel\MoonShineRequest;
 use MoonShine\Layouts\Casts\LayoutItem;
 use MoonShine\Layouts\Collections\LayoutItemCollection;
 use MoonShine\Layouts\Fields\Layout;
@@ -21,12 +21,12 @@ final class LayoutsController extends MoonShineController
     /**
      * @throws Throwable
      */
-    public function store(MoonShineRequest $request): MoonShineJsonResponse
+    public function store(CrudRequestContract $request): JsonResponse
     {
         $field = $this->getField($request);
 
         if (is_null($field)) {
-            return MoonShineJsonResponse::make()
+            return JsonResponse::make()
                 ->toast('Field not found', ToastType::ERROR);
         }
 
@@ -44,7 +44,7 @@ final class LayoutsController extends MoonShineController
             ?->removeButton($field->getRemoveButton());
 
         if (is_null($layout)) {
-            return MoonShineJsonResponse::make()
+            return JsonResponse::make()
                 ->toast('Layout not found', ToastType::ERROR);
         }
 
@@ -53,17 +53,17 @@ final class LayoutsController extends MoonShineController
             ->get($layout->name(), 0);
 
         if ($layout->hasLimit() && $layout->limit() <= $layoutCount) {
-            return MoonShineJsonResponse::make()
+            return JsonResponse::make()
                 ->toast("Limit count {$layout->limit()}", ToastType::ERROR);
         }
 
-        return MoonShineJsonResponse::make()->html((string) $layout);
+        return JsonResponse::make()->html((string) $layout);
     }
 
     /**
      * @throws Throwable
      */
-    private function getField(MoonShineRequest $request): ?Layouts
+    private function getField(CrudRequestContract $request): ?Layouts
     {
         $page = $request->getPage();
 

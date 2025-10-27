@@ -3,14 +3,15 @@
 
 ### Requirements
 
-- MoonShine v3.0+
+- MoonShine v4.0+
 
 ### Support MoonShine versions
 
-| MoonShine   | Layouts |
-|-------------|---------|
-| 2.0+        | 1.0+    |
-| 3.0+        | 2.0+    |
+| MoonShine | Layouts |
+|-----------|---------|
+| 2.0+      | 1.0+    |
+| 3.0+      | 2.0+    |
+| 4.0+      | 3.0+    |
 
 ## Quick start
 
@@ -22,8 +23,10 @@ composer require moonshine/layouts-field
 
 ### Usage
 
-Field Layouts for MoonShine allows you to easily manage repeating groups of fields. You will be able to add, delete and sort groups consisting of basic fields.
-There are some restrictions on the use of fields in the Layouts field. You can use any basic fields except **Relationships** fields.
+Field Layouts for MoonShine allows you to easily manage repeating groups of fields.
+You will be able to add, delete and sort groups consisting of basic fields.
+There are some restrictions on the use of fields in the Layouts field.
+You can use any basic fields except **Relationships** fields.
 
 ```php
 use MoonShine\Layouts\Fields\Layouts;
@@ -38,19 +41,27 @@ Layouts::make('Content')
         Image::make('Banner image', 'thumbnail'),
     ], validation: ['title' => 'required']),
 ```
+
 #### Adding layouts
 
 Layouts can be added using the following method on your Layouts fields:
 
 ```php
-addLayout(string $title, string $name, iterable $fields, ?int $limit = null, iterable $headingAdditionalFields = null, array $validation = [])
+addLayout(
+    string $title,
+    string $name,
+    iterable $fields,
+    ?int $limit = null,
+    iterable $headingAdditionalFields = null,
+    array $validation = []
+)
 ```
-1. The `$title` parameter allows you to specify the name of a group of fields that will be displayed in the form.
-2. The `$name` parameter is used to store the chosen layout in the field's value.
-3. The `$fields` parameter accepts an array of fields that will be used to populate a group of fields in the form.
-4. `$limit` allows you to set the max number of groups in the field.
-5. `$headingAdditionalFields` components in header
-6. `$validation` validation rules.
+- `$title` - allows you to specify the name of a group of fields that will be displayed in the form,
+- `$name` - used to store the chosen layout in the field's value,
+- `$fields` - accepts an array of fields that will be used to populate a group of fields in the form,
+- `$limit` - allows you to set the max number of groups in the field,
+- `$headingAdditionalFields` - components in header,
+- `$validation` - validation rules.
 
 #### Adding cast
 
@@ -68,10 +79,8 @@ class Article extends Model
         ];
     }
 }
-
-Layouts::make('Content', 'content')
-    ->addButton(ActionButton::make('New layout')->icon('plus')->primary())
 ```
+
 #### Customizing the button label
 
 You can change the default "Add layout" button's text using the [ActionButton](https://moonshine-laravel.com/docs/3.x/components/action-button) component:
@@ -80,48 +89,65 @@ You can change the default "Add layout" button's text using the [ActionButton](h
 Layouts::make('Content')
     ->addButton(ActionButton::make('New layout')->icon('plus')->primary())
 ```
+
 #### Adding search field
+
 You can add search input in layout list as follows:
+
 ```php
 Layouts::make('Content')
-  ->addLayout('Info section', 'info', [
-    ...
-  ])
-  ...
-  ->addLayout('Slider section', 'slider', [
-    ...
-  ])
-  ->searchable()
+    ->addLayout('Info section', 'info', [
+        // ...
+    ])
+    // ...
+    ->addLayout('Slider section', 'slider', [
+        // ...
+    ])
+    ->searchable()
 ```
-
 
 #### Validation
 
 ```php
-use MoonShine\UI\Fields\Email;Layouts::make('Content')
-  ->addLayout('Info section', 'info', [
-    Email::make('Email')
-  ], validation: ['email' => ['required', 'email']], attributes: ['email' => 'E-mail'])
+Layouts::make('Content')
+    ->addLayout(
+        'Info section',
+        'info',
+        [
+            Email::make('Email')
+        ],
+        validation: ['email' => ['required', 'email']],
+        attributes: ['email' => 'E-mail']
+    )
 ```
 
 ```php
-use MoonShine\UI\Fields\Email;Layouts::make('Content')
-  ->addLayout('Info section', 'info', [
-    Email::make('Email')
-  ]),
-  ->addLayout('Additionally section', 'additionally', [
-    Text::make('Title')
-  ])
-  ->validation(['info' => ['email' => 'required'], 'additionally' => ['title' => 'required']])
+Layouts::make('Content')
+    ->addLayout('Info section', 'info', [
+        Email::make('Email')
+    ]),
+    ->addLayout('Additionally section', 'additionally', [
+        Text::make('Title')
+    ])
+    ->validation([
+        'info' => ['email' => 'required'],
+        'additionally' => ['title' => 'required']]
+    )
 ```
 
 ```php
-use MoonShine\UI\Fields\Email;Layouts::make('Content')
-  ->addLayout('Info section', 'info', [
-    Email::make('Email')
-  ], validation: ['email' => ['email']], attributes: ['email' => 'E-mail']),
-  ->addLayout('Additionally section', 'additionally', [
-    Text::make('Title')
-  ])
-  ->validation(['info' => ['email' => ['required']], 'additionally' => ['title' => 'required']], attributes: ['additionally' => ['title' => 'Заголовок']])
+Layouts::make('Content')
+    ->addLayout('Info section', 'info', [
+        Email::make('Email')
+    ], validation: ['email' => ['email']], attributes: ['email' => 'E-mail']),
+    ->addLayout('Additionally section', 'additionally', [
+        Text::make('Title')
+    ])
+    ->validation(
+        [
+            'info' => ['email' => ['required']],
+            'additionally' => ['title' => 'required']
+        ],
+        attributes: ['additionally' => ['title' => 'Заголовок']]
+    )
 ```

@@ -109,8 +109,10 @@ final class Layouts extends Field
     public function getAddRoute(): string
     {
         return route('moonshine.layouts-field.store', [
-            'resourceUri' => $this->resource ? $this->resource->getUriKey() : moonshineRequest()->getResourceUri(),
-            'pageUri' => $this->page ? $this->page->getUriKey() : moonshineRequest()->getPageUri(),
+            'resourceUri' => $this->getNowOnResource() ? $this->getNowOnResource()->getUriKey() :
+                ($this->resource ? $this->resource->getUriKey() : moonshineRequest()->getResourceUri()),
+            'pageUri' => $this->getNowOnPage() ? $this->getNowOnPage()->getUriKey() :
+                ($this->page ? $this->page->getUriKey() : moonshineRequest()->getPageUri()),
         ]);
     }
 

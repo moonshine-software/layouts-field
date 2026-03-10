@@ -47,6 +47,15 @@ document.addEventListener('alpine:init', () => {
                     }
 
                     t._reindex()
+
+					t.$nextTick(function () {
+                            document.dispatchEvent(
+                                new CustomEvent('layouts:block-added', {
+                                    bubbles: true,
+                                    detail: { name: name, column: t.column },
+                                }),
+                            );
+					})
                 }
             })
         },

@@ -4,12 +4,10 @@ document.addEventListener('alpine:init', () => {
         column: column,
         root: null,
         blocksContainer: null,
-
         init() {
             this.root = this.$root
             this.blocksContainer = this.root.querySelector('._layouts-blocks')
             this._reindex()
-
             const t = this
 
             MoonShine.iterable.sortable(
@@ -17,68 +15,61 @@ document.addEventListener('alpine:init', () => {
                 null,
                 'layouts',
                 null,
-                { handle: '.handle' },
-                function() { t._reindex() },
+                {
+                    handle: '.handle'
+                },
+                function(evt) {
+                    t._reindex()
+                }
             )
         },
-
         add(name) {
             const t = this
 
-            let counts = {}
-            document.querySelectorAll('._layout-value').forEach(function(l) {
-                counts[l.value] = (counts[l.value] || 0) + 1
+            let layoutsCount = {}
+            const layouts = document.querySelectorAll('._layout-value')
+            layouts.forEach(function(l) {
+                layoutsCount[l.value] = layoutsCount[l.value] ? layoutsCount[l.value]+1 : 1
             })
+
 
             MoonShine.request(t, t.url, 'post', {
                 field: t.column,
                 name: name,
-                counts: counts,
+                counts: layoutsCount
             }, {}, {
                 afterResponse: function(data) {
-                    const temp = document.createElement('div')
-                    temp.innerHTML = data.html ?? data.htmlData[0].html ?? ''
+                    const tempContainer = document.createElement('div');
+                    tempContainer.innerHTML = data.html ?? data.htmlData[0].html ?? '';
 
-                    while (temp.firstChild) {
-                        t.blocksContainer.appendChild(temp.firstChild)
+                    while (tempContainer.firstChild) {
+                        t.blocksContainer.appendChild(tempContainer.firstChild);
                     }
 
                     t._reindex()
 
-                    t.$nextTick(function() {
-                        document.dispatchEvent(
-                            new CustomEvent('layouts:block-added', {
-                                bubbles: true,
-                                detail: { name: name, column: t.column },
-                            }),
-                        )
-                    })
-                },
+					t.$nextTick(function () {
+                            document.dispatchEvent(
+                                new CustomEvent('layouts:block-added', {
+                                    bubbles: true,
+                                    detail: { name: name, column: t.column },
+                                }),
+                            );
+					})
+                }
             })
         },
-
         remove() {
             this.$el.closest('._layouts-block').remove()
             this._reindex()
         },
-
-        /**
-         * Orchestrates reindexing in two phases:
-         *
-         * 1. MoonShine iterable.reindex — handles level-0 field names
-         *    and position displays. Async (uses await $nextTick internally).
-         *
-         * 2. _reindexFields (deferred via setTimeout 0) — runs after
-         *    iterable.reindex fully completes, computing correct indices
-         *    for ALL nesting levels from DOM positions.
-         */
         _reindex() {
             const t = this
 
             this.$nextTick(function() {
                 MoonShine.iterable.reindex(
                     t.blocksContainer,
-                    '._layouts-block',
+                    '._layouts-block'
                 )
 
                 setTimeout(function() {
@@ -86,14 +77,6 @@ document.addEventListener('alpine:init', () => {
                 }, 0)
             })
         },
-
-        /**
-         * Recomputes and applies block indices to position displays
-         * and field name attributes across all nesting levels.
-         *
-         * Reads indices from DOM position (not data-r-index) so it's
-         * independent of iterable.reindex timing.
-         */
         _reindexFields() {
             const t = this
 
@@ -104,7 +87,7 @@ document.addEventListener('alpine:init', () => {
                 let count = 0
                 for (let i = 0; i < parent.children.length; i++) {
                     if (parent.children[i] === block) return count
-                    if (parent.children[i].classList?.contains('_layouts-block')) {
+                    if (parent.children[i].classList && parent.children[i].classList.contains('_layouts-block')) {
                         count++
                     }
                 }
@@ -113,7 +96,7 @@ document.addEventListener('alpine:init', () => {
 
             function findPositionDisplay(block) {
                 return block.querySelector(
-                    ':scope > .accordion-item > .accordion-btn [data-increment-position]',
+                    ':scope > .accordion-item > .accordion-btn [data-increment-position]'
                 )
             }
 
@@ -158,12 +141,12 @@ document.addEventListener('alpine:init', () => {
                     if (isNaN(level) || level < 1) return
 
                     const dataName = el.getAttribute('data-name')
-                    if (dataName && dataName.includes('${index')) {
+                    if (dataName && dataName.indexOf('${index') !== -1) {
                         el.setAttribute('name', resolveName(dataName, indices))
                     }
 
                     const validationField = el.getAttribute('data-validation-field')
-                    if (validationField && validationField.includes('${index')) {
+                    if (validationField && validationField.indexOf('${index') !== -1) {
                         el.setAttribute('data-validation-field', resolveName(validationField, indices))
                     }
                 })
@@ -180,12 +163,13 @@ document.addEventListener('alpine:init', () => {
                 const container = layoutRoot.querySelector(':scope > ._layouts-blocks')
                 if (!container) return
 
-                Array.from(container.children).forEach(function(block) {
-                    if (block.classList?.contains('_layouts-block')) {
+                for (let i = 0; i < container.children.length; i++) {
+                    const block = container.children[i]
+                    if (block.classList && block.classList.contains('_layouts-block')) {
                         applyIndices(block)
                     }
-                })
+                }
             })
-        },
+        }
     }))
 })

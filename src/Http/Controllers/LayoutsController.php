@@ -78,8 +78,61 @@ final class LayoutsController extends MoonShineController
             };
         }
 
-        return $fields
-            ->onlyFields()
-            ->findByColumn($request->get('field'));
+        $column = $request->get('field');
+
+        // Original top-level search (for non-nested Layouts)
+        $field = $fields->onlyFields()->findByColumn($column);
+
+        if ($field instanceof Layouts) {
+            return $field;
+        }
+
+        // Fallback: recursive search inside nested Layouts fields
+        return $this->findNestedLayouts($fields->onlyFields(), $column);
+    }
+
+    /**
+     * Recursively search for a Layouts field by column inside other Layouts fields.
+     *
+     * @param  iterable  $fields  Flattened fields collection (onlyFields result)
+     * @param  string  $column  The column to find
+     */
+    private function findNestedLayouts(iterable $fields, string $column): ?Layouts
+    {
+        foreach ($fields as $field) {
+            if (! $field instanceof Layouts) {
+                continue;
+            }
+
+            // Direct match
+            if ($field->getColumn() === $column) {
+                return $field;
+            }
+
+            // Recurse into this Layouts field's Layout objects
+            foreach ($field->getLayouts() as $layout) {
+                $nested = $this->findNestedLayouts($layout->fields()->onlyFields(), $column);
+
+                if ($nested !== null) {
+                    // Set the parent prefix on the found field so that
+                    // prepareReindexNames generates correct field names
+                    // e.g. blocks[${index0}][content] instead of just content
+                    $parentNameDot = $field->getNameDot();
+                    $level = substr_count($parentNameDot, '$');
+
+                    $nested->setNameAttribute(
+                        $nested->generateNameFrom(
+                            $parentNameDot,
+                            "\${index$level}",
+                            $nested->getColumn(),
+                        )
+                    );
+
+                    return $nested;
+                }
+            }
+        }
+
+        return null;
     }
 }

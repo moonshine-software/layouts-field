@@ -63,6 +63,7 @@ document.addEventListener('alpine:init', () => {
             this.$el.closest('._layouts-block').remove()
             this._reindex()
         },
+        _reindexTimer: null,
         _reindex() {
             const t = this
 
@@ -72,7 +73,8 @@ document.addEventListener('alpine:init', () => {
                     '._layouts-block'
                 )
 
-                setTimeout(function() {
+                clearTimeout(t._reindexTimer)
+                t._reindexTimer = setTimeout(function() {
                     t._reindexFields()
                 }, 0)
             })
@@ -126,7 +128,7 @@ document.addEventListener('alpine:init', () => {
                 return result
             }
 
-            function applyIndices(block) {
+            function applyIndices(block, layoutRoot) {
                 const indices = resolveIndexChain(block)
 
                 const positionEl = findPositionDisplay(block)
@@ -137,6 +139,8 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 block.querySelectorAll('[data-level]').forEach(function(el) {
+                    if (el.closest('[data-top-level]') !== layoutRoot) return
+
                     const level = parseInt(el.getAttribute('data-level'))
                     if (isNaN(level) || level < 1) return
 
@@ -166,7 +170,7 @@ document.addEventListener('alpine:init', () => {
                 for (let i = 0; i < container.children.length; i++) {
                     const block = container.children[i]
                     if (block.classList && block.classList.contains('_layouts-block')) {
-                        applyIndices(block)
+                        applyIndices(block, layoutRoot)
                     }
                 }
             })

@@ -1,3 +1,77 @@
+function countBlocksBefore(block) {
+    const parent = block.parentElement
+    if (!parent) return 0
+
+    let count = 0
+    for (let i = 0; i < parent.children.length; i++) {
+        if (parent.children[i] === block) return count
+        if (parent.children[i].classList && parent.children[i].classList.contains('_layouts-block')) {
+            count++
+        }
+    }
+    return count
+}
+
+function findPositionDisplay(block) {
+    return block.querySelector(
+        ':scope > .accordion-item > .accordion-btn [data-increment-position]'
+    )
+}
+
+function resolveIndexChain(startBlock) {
+    const indices = []
+    let searchFrom = startBlock
+
+    while (searchFrom) {
+        const block = searchFrom.closest('._layouts-block')
+        if (!block) break
+
+        indices.unshift(countBlocksBefore(block) + 1)
+
+        const layoutsRoot = block.closest('[data-top-level]')
+        if (!layoutsRoot) break
+        searchFrom = layoutsRoot.parentElement
+    }
+
+    return indices
+}
+
+function resolveName(template, indices) {
+    let result = template
+    for (let i = 0; i < indices.length; i++) {
+        result = result.split('${index' + i + '}').join(indices[i])
+    }
+    return result
+}
+
+function applyIndices(block, layoutRoot) {
+    const indices = resolveIndexChain(block)
+
+    const positionEl = findPositionDisplay(block)
+    if (positionEl) {
+        const position = indices[indices.length - 1]
+        positionEl.setAttribute('data-r-index', position)
+        positionEl.innerHTML = position
+    }
+
+    block.querySelectorAll('[data-level]').forEach(function(el) {
+        if (el.closest('[data-top-level]') !== layoutRoot) return
+
+        const level = parseInt(el.getAttribute('data-level'))
+        if (isNaN(level) || level < 1) return
+
+        const dataName = el.getAttribute('data-name')
+        if (dataName && dataName.indexOf('${index') !== -1) {
+            el.setAttribute('name', resolveName(dataName, indices))
+        }
+
+        const validationField = el.getAttribute('data-validation-field')
+        if (validationField && validationField.indexOf('${index') !== -1) {
+            el.setAttribute('data-validation-field', resolveName(validationField, indices))
+        }
+    })
+}
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('layouts', (url, column) => ({
         url: url,
@@ -81,80 +155,6 @@ document.addEventListener('alpine:init', () => {
         },
         _reindexFields() {
             const t = this
-
-            function countBlocksBefore(block) {
-                const parent = block.parentElement
-                if (!parent) return 0
-
-                let count = 0
-                for (let i = 0; i < parent.children.length; i++) {
-                    if (parent.children[i] === block) return count
-                    if (parent.children[i].classList && parent.children[i].classList.contains('_layouts-block')) {
-                        count++
-                    }
-                }
-                return count
-            }
-
-            function findPositionDisplay(block) {
-                return block.querySelector(
-                    ':scope > .accordion-item > .accordion-btn [data-increment-position]'
-                )
-            }
-
-            function resolveIndexChain(startBlock) {
-                const indices = []
-                let searchFrom = startBlock
-
-                while (searchFrom) {
-                    const block = searchFrom.closest('._layouts-block')
-                    if (!block) break
-
-                    indices.unshift(countBlocksBefore(block) + 1)
-
-                    const layoutsRoot = block.closest('[data-top-level]')
-                    if (!layoutsRoot) break
-                    searchFrom = layoutsRoot.parentElement
-                }
-
-                return indices
-            }
-
-            function resolveName(template, indices) {
-                let result = template
-                for (let i = 0; i < indices.length; i++) {
-                    result = result.split('${index' + i + '}').join(indices[i])
-                }
-                return result
-            }
-
-            function applyIndices(block, layoutRoot) {
-                const indices = resolveIndexChain(block)
-
-                const positionEl = findPositionDisplay(block)
-                if (positionEl) {
-                    const position = indices[indices.length - 1]
-                    positionEl.setAttribute('data-r-index', position)
-                    positionEl.innerHTML = position
-                }
-
-                block.querySelectorAll('[data-level]').forEach(function(el) {
-                    if (el.closest('[data-top-level]') !== layoutRoot) return
-
-                    const level = parseInt(el.getAttribute('data-level'))
-                    if (isNaN(level) || level < 1) return
-
-                    const dataName = el.getAttribute('data-name')
-                    if (dataName && dataName.indexOf('${index') !== -1) {
-                        el.setAttribute('name', resolveName(dataName, indices))
-                    }
-
-                    const validationField = el.getAttribute('data-validation-field')
-                    if (validationField && validationField.indexOf('${index') !== -1) {
-                        el.setAttribute('data-validation-field', resolveName(validationField, indices))
-                    }
-                })
-            }
 
             const layoutRoots = [t.root]
             t.root.querySelectorAll('[data-top-level]').forEach(function(el) {

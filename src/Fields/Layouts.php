@@ -339,6 +339,7 @@ final class Layouts extends Field
             ->disableAdd()
             ->disableSort()
             ->previewMode()
+            ->defaultMode()
             ->render();
     }
 
